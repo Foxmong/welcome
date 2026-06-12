@@ -7,6 +7,7 @@
 | 파일 | 날짜 | 내용 |
 |---|---|---|
 | [2026-06-11-macmini-server-setup.md](./2026-06-11-macmini-server-setup.md) | 2026-06-11 | 저장장치 구성, Tailscale, SSH, SMB, CentOS VM 설치까지 |
+| [2026-06-12-macmini-server-setup.md](./2026-06-12-macmini-server-setup.md) | 2026-06-12 | Guest Additions 실패→SSHFS, ServerData 마운트, ARM64 한계, 다음 단계 |
 
 ## 맥미니 실제 경로
 
