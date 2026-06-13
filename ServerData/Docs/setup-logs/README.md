@@ -9,8 +9,15 @@
 | [2026-06-11-macmini-server-setup.md](./2026-06-11-macmini-server-setup.md) | 2026-06-11 | 저장장치 구성, Tailscale, SSH, SMB, CentOS VM 설치까지 |
 | [2026-06-12-macmini-server-setup.md](./2026-06-12-macmini-server-setup.md) | 2026-06-12 | Guest Additions 실패→SSHFS, ServerData 마운트, ARM64 한계, 다음 단계 |
 
+## 관련 가이드
+
+| 파일 | 내용 |
+|---|---|
+| [../guides/tailscale-sftp-file-transfer.md](../guides/tailscale-sftp-file-transfer.md) | Tailscale + SFTP 파일 이동, 명령어, 세팅 |
+
 ## 맥미니 실제 경로
 
 ```text
 /Volumes/ServerData/Docs/setup-logs/
+/Volumes/ServerData/Docs/guides/
 ```
