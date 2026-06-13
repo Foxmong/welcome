@@ -1,8 +1,8 @@
 # Tailscale + SFTP 파일 이동 가이드
 
-- **작성일:** 2026-06-12
+- **작성일:** 2026-06-12 (SFTP 방식 중심으로 정리)
 - **대상:** kimiui-Macmini 홈서버
-- **용도:** 외부/내부 노트북에서 맥미니·CentOS VM으로 파일 주고받기
+- **방식:** **SFTP (`sftp` + `get` / `put`)** — 이 문서의 기본 방법
 
 ---
 
@@ -12,34 +12,29 @@
 
 ```text
 Tailscale  → 안전한 사설망(VPN) 연결
-SFTP       → SSH 위에서 파일 업로드/다운로드
+SFTP       → sftp 접속 후 get / put 으로 파일 이동
 ```
 
 포트포워딩 없이, **집 밖에서도** 맥미니/VM에 파일을 옮길 수 있습니다.
 
-### SMB vs SFTP vs SSHFS (현재 환경)
-
-| 방식 | 용도 | 접근 범위 | 외부 접속 |
-|---|---|---|---|
-| **SMB** | Finder처럼 폴더 탐색 | Shared 폴더만 | Tailscale IP로 가능 |
-| **SFTP** | 파일 업/다운, 스크립트 | SSH 권한 범위 | Tailscale IP로 가능 ✅ |
-| **SSHFS** | VM에서 ServerData 마운트 | VM ↔ 맥미니 전체 | VM 내부에서만 |
-
-**추천 역할 분리:**
+### SFTP 기본 흐름
 
 ```text
-일상 파일 주고받기 (노트북)  → SFTP 또는 SMB(Shared)
-서버 관리                    → SSH
-VM ↔ ServerData              → SSHFS (VM 안)
+1. sftp 접속
+2. sftp> 프롬프트 확인
+3. cd / lcd 로 경로 이동
+4. put (업로드) 또는 get (다운로드)
+5. exit
 ```
+
+> **중요:** `get`, `put`은 **일반 터미널 명령이 아닙니다.**  
+> 반드시 `sftp` 접속 후 **`sftp>` 프롬프트 안에서** 사용합니다.
 
 ---
 
 ## 2. 사전 준비 (맥미니)
 
 ### 2-1. Tailscale
-
-이미 설치·연결된 상태:
 
 ```text
 맥미니 Tailscale IP: 100.127.117.23
@@ -55,7 +50,7 @@ tailscale status
 
 ### 2-2. SSH (Remote Login) 활성화
 
-SFTP는 **SSH가 켜져 있어야** 동작합니다.
+SFTP는 SSH 위에서 동작합니다. Remote Login이 켜져 있어야 합니다.
 
 ```bash
 sudo systemsetup -setremotelogin on
@@ -75,6 +70,7 @@ Remote Login: On
 | 집 안 IP | 192.168.0.100 | 192.168.0.113 |
 | Tailscale IP | 100.127.117.23 | (VM Tailscale 설치 후) |
 | 사용자 | kimi | foxmong |
+| 포트 | 22 | 22 |
 
 ---
 
@@ -83,24 +79,19 @@ Remote Login: On
 ### 3-1. Tailscale 설치 및 로그인
 
 ```text
-노트북에 Tailscale 설치
-→ 맥미니와 같은 Tailnet 계정으로 로그인
+노트북 Tailscale 설치
+→ 맥미니와 같은 Tailnet 계정 로그인
 → Connected 상태 확인
 ```
 
 ### 3-2. SSH 키 로그인 (권장)
 
-비밀번호 대신 키 사용 시 편하고 안전합니다.
+SFTP 접속 시에도 같은 SSH 키를 사용합니다.
 
 **노트북에서:**
 
 ```bash
 ssh-keygen -t ed25519 -C "laptop-to-macmini"
-```
-
-공개키를 맥미니에 등록:
-
-```bash
 ssh-copy-id kimi@100.127.117.23
 ```
 
@@ -117,7 +108,7 @@ cat ~/.ssh/id_ed25519.pub
 ```bash
 mkdir -p ~/.ssh
 chmod 700 ~/.ssh
-nano ~/.ssh/authorized_keys   # 공개키 한 줄 붙여넣기
+nano ~/.ssh/authorized_keys
 chmod 600 ~/.ssh/authorized_keys
 ```
 
@@ -125,206 +116,222 @@ chmod 600 ~/.ssh/authorized_keys
 
 ```bash
 ssh kimi@100.127.117.23
+sftp kimi@100.127.117.23
 ```
 
-비밀번호 없이 접속되면 SFTP도 키로 사용 가능합니다.
-
 ---
 
-## 4. 접속 주소 정리
+## 4. SFTP 접속 방법
 
-### 맥미니 SFTP
+### 4-1. 맥미니 접속
 
-| 상황 | 호스트 | 포트 |
-|---|---|---|
-| 같은 집 | `192.168.0.100` | 22 |
-| 밖 (Tailscale) | `100.127.117.23` | 22 |
-
-### CentOS VM SFTP (VM 켜져 있을 때)
-
-| 상황 | 호스트 | 포트 |
-|---|---|---|
-| 같은 집 | `192.168.0.113` | 22 |
-| 밖 (Jump Host) | 맥미니 경유 | 22 |
-| 밖 (VM Tailscale 설치 후) | VM Tailscale IP | 22 |
-
----
-
-## 5. SFTP 사용법 — 터미널 (sftp)
-
-### 5-1. 접속
-
-**맥미니 (Tailscale):**
+**밖 (Tailscale, 추천):**
 
 ```bash
 sftp kimi@100.127.117.23
 ```
 
-**맥미니 (집 안):**
+**집 안 (같은 Wi‑Fi):**
 
 ```bash
 sftp kimi@192.168.0.100
 ```
 
-**CentOS VM (집 안):**
+**SSH config 사용 시:**
+
+```bash
+sftp macmini
+```
+
+### 4-2. CentOS VM 접속 (VM 켜져 있을 때)
+
+**집 안:**
 
 ```bash
 sftp foxmong@192.168.0.113
 ```
 
-### 5-2. 자주 쓰는 명령어
+**밖 (Jump Host, VM Tailscale 미설치 시):**
 
-접속 후 `sftp>` 프롬프트에서:
+```bash
+sftp -J kimi@100.127.117.23 foxmong@192.168.0.113
+```
+
+**VM Tailscale 설치 후:**
+
+```bash
+sftp foxmong@VM-Tailscale-IP
+```
+
+### 4-3. 접속 성공 확인
+
+프롬프트가 이렇게 바뀌면 SFTP 세션 안입니다:
+
+```text
+sftp>
+```
+
+이 상태에서만 `get`, `put`, `cd`, `lcd`를 사용할 수 있습니다.
+
+---
+
+## 5. SFTP 명령어 (get / put 중심)
+
+### 5-1. 경로 이동
+
+| 명령 | 설명 | 예시 |
+|---|---|---|
+| `pwd` | 서버(맥미니) 현재 경로 | `pwd` |
+| `lpwd` | 내 PC(노트북) 현재 경로 | `lpwd` |
+| `cd 경로` | 서버에서 이동 | `cd /Volumes/ServerData/Shared` |
+| `lcd 경로` | 내 PC에서 이동 | `lcd ~/Downloads` |
+| `ls` | 서버 파일 목록 | `ls` |
+| `lls` | 내 PC 파일 목록 | `lls` |
+
+### 5-2. 파일 업로드 — put
+
+**내 PC → 서버**
 
 | 명령 | 설명 |
 |---|---|
-| `ls` | 서버(원격) 현재 폴더 목록 |
-| `lls` | 내 PC(로컬) 현재 폴더 목록 |
-| `pwd` | 서버 현재 경로 |
-| `lpwd` | 로컬 현재 경로 |
-| `cd 경로` | 서버에서 이동 |
-| `lcd 경로` | 로컬에서 이동 |
-| `get 파일` | 서버 → 내 PC 다운로드 |
-| `get -r 폴더` | 서버 폴더 통째 다운로드 |
-| `put 파일` | 내 PC → 서버 업로드 |
-| `put -r 폴더` | 로컬 폴더 통째 업로드 |
+| `put 파일` | 파일 1개 업로드 |
+| `put -r 폴더` | 폴더 통째 업로드 |
+| `mput *.txt` | 여러 파일 업로드 (glob) |
+
+예시:
+
+```text
+sftp> lcd ~/Downloads
+sftp> cd /Volumes/ServerData/Shared
+sftp> put report.pdf
+sftp> put -r project-folder
+```
+
+### 5-3. 파일 다운로드 — get
+
+**서버 → 내 PC**
+
+| 명령 | 설명 |
+|---|---|
+| `get 파일` | 파일 1개 다운로드 |
+| `get -r 폴더` | 폴더 통째 다운로드 |
+| `mget *.pdf` | 여러 파일 다운로드 (glob) |
+
+예시:
+
+```text
+sftp> cd /Volumes/ServerData/Projects
+sftp> lcd ~/Desktop
+sftp> get backup.zip
+sftp> get -r myproject
+```
+
+### 5-4. 기타 유용한 명령
+
+| 명령 | 설명 |
+|---|---|
 | `mkdir 이름` | 서버에 폴더 생성 |
 | `rm 파일` | 서버 파일 삭제 |
+| `rmdir 폴더` | 서버 빈 폴더 삭제 |
 | `rename A B` | 서버에서 이름 변경 |
-| `exit` / `bye` | 종료 |
+| `!명령` | 로컬 쉘 명령 실행 (예: `!ls`) |
+| `help` | SFTP 도움말 |
+| `exit` / `bye` | SFTP 종료 |
 
-### 5-3. 실전 예시
+### 5-5. get / put 옵션
 
-**노트북 → 맥미니 Shared에 파일 업로드:**
+| 옵션 | 설명 |
+|---|---|
+| `-r` | 폴더 재귀 (하위까지) |
+| `-P` | 권한 유지 (일부 클라이언트) |
+| `-a` | 재개(resume) 가능 (일부 클라이언트) |
+
+---
+
+## 6. 실전 시나리오 (SFTP만 사용)
+
+### 시나리오 1. 노트북 → 맥미니 Shared 업로드
 
 ```bash
 sftp kimi@100.127.117.23
-cd /Volumes/ServerData/Shared
-lcd ~/Downloads
-put report.pdf
-exit
 ```
 
-**맥미니 Projects → 노트북으로 받기:**
+```text
+sftp> cd /Volumes/ServerData/Shared
+sftp> lcd ~/Downloads
+sftp> put document.pdf
+sftp> ls
+sftp> exit
+```
+
+### 시나리오 2. 맥미니 Projects → 노트북 다운로드
 
 ```bash
 sftp kimi@100.127.117.23
-cd /Volumes/ServerData/Projects
-lcd ~/Desktop
-get -r myproject
-exit
 ```
 
-**한 줄로 업로드 (접속 없이):**
-
-```bash
-scp ~/Downloads/file.txt kimi@100.127.117.23:/Volumes/ServerData/Shared/
+```text
+sftp> cd /Volumes/ServerData/Projects
+sftp> lcd ~/Desktop
+sftp> get -r myproject
+sftp> exit
 ```
 
-**한 줄로 다운로드:**
+### 시나리오 3. 여러 파일 한 번에 업로드
 
 ```bash
-scp kimi@100.127.117.23:/Volumes/ServerData/Shared/file.txt ~/Downloads/
+sftp kimi@100.127.117.23
 ```
 
-**폴더 통째 복사:**
+```text
+sftp> cd /Volumes/ServerData/Shared
+sftp> lcd ~/Downloads
+sftp> mput *.pdf
+sftp> exit
+```
+
+### 시나리오 4. 서버에 폴더 만들고 업로드
 
 ```bash
-scp -r kimi@100.127.117.23:/Volumes/ServerData/Projects/myproject ~/Desktop/
+sftp kimi@100.127.117.23
+```
+
+```text
+sftp> cd /Volumes/ServerData/Shared
+sftp> mkdir 2026-06-12
+sftp> cd 2026-06-12
+sftp> lcd ~/Downloads
+sftp> put -r photos
+sftp> exit
+```
+
+### 시나리오 5. CentOS VM에 파일 넣기
+
+```bash
+sftp foxmong@192.168.0.113
+```
+
+```text
+sftp> lcd ~/Downloads
+sftp> put script.sh
+sftp> ls
+sftp> exit
+```
+
+### 시나리오 6. 밖에서 VM 접속 (Jump Host)
+
+```bash
+sftp -J kimi@100.127.117.23 foxmong@192.168.0.113
+```
+
+```text
+sftp> put file.txt
+sftp> exit
 ```
 
 ---
 
-## 6. SFTP 사용법 — GUI
-
-### 6-1. macOS Finder (간단, SMB와 유사)
-
-Tailscale 연결 후:
-
-```text
-이동 → 서버에 연결
-sftp://100.127.117.23
-```
-
-또는 SSH 마운트 후 Finder에서 SFTP 드라이브처럼 사용 (아래 sshfs 참고).
-
-**참고:** macOS Finder는 **SMB**가 더 익숙합니다.
-
-```text
-smb://100.127.117.23/Shared
-```
-
-Shared 폴더만 필요하면 SMB, **임의 경로** 접근은 SFTP/scp.
-
-### 6-2. Cyberduck / FileZilla (SFTP 전용 GUI)
-
-**Cyberduck (macOS 추천):**
-
-```text
-새 연결
-프로토콜: SFTP
-서버: 100.127.117.23
-포트: 22
-사용자: kimi
-비밀번호 또는 SSH 키
-```
-
-**FileZilla:**
-
-```text
-호스트: sftp://100.127.117.23
-사용자: kimi
-포트: 22
-```
-
-연결 후 드래그 앤 드롭으로 업/다운로드.
-
-### 6-3. VS Code / Cursor Remote-SSH
-
-```text
-Remote-SSH 확장
-→ kimi@100.127.117.23
-→ /Volumes/ServerData/Projects 직접 편집
-```
-
-코드 작업 시 SFTP보다 편할 수 있습니다.
-
----
-
-## 7. rsync (대용량·동기화)
-
-SFTP/scp보다 **재전송·차분 동기화**에 유리합니다.
-
-**노트북 → 맥미니:**
-
-```bash
-rsync -avh --progress ~/Projects/ kimi@100.127.117.23:/Volumes/ServerData/Projects/
-```
-
-**맥미니 → 노트북:**
-
-```bash
-rsync -avh --progress kimi@100.127.117.23:/Volumes/ServerData/Shared/ ~/Downloads/Shared/
-```
-
-**삭제 반영 (미러링, 주의):**
-
-```bash
-rsync -avh --delete ~/Projects/ kimi@100.127.117.23:/Volumes/ServerData/Projects/
-```
-
-옵션:
-
-```text
--a  아카이브 (권한·시간 유지)
--v  상세 출력
--h  사람이 읽기 쉬운 크기
---progress  진행률
-```
-
----
-
-## 8. SSH config로 접속 단순화
+## 7. SSH config로 접속 단순화
 
 노트북 `~/.ssh/config`:
 
@@ -346,39 +353,8 @@ Host centos
     HostName 192.168.0.113
     User foxmong
     IdentityFile ~/.ssh/id_ed25519
-```
 
-사용:
-
-```bash
-sftp macmini
-scp file.txt macmini:/Volumes/ServerData/Shared/
-ssh macmini
-rsync -avh ./data/ macmini:/Volumes/ServerData/Projects/data/
-```
-
----
-
-## 9. CentOS VM 파일 이동
-
-### 9-1. 노트북 → VM (집 안)
-
-```bash
-sftp foxmong@192.168.0.113
-put file.txt
-```
-
-### 9-2. 노트북 → VM (밖, Jump Host)
-
-VM Tailscale 미설치 시:
-
-```bash
-scp -J kimi@100.127.117.23 file.txt foxmong@192.168.0.113:~/
-```
-
-또는 `~/.ssh/config`:
-
-```text
+# CentOS VM (밖, 맥미니 경유)
 Host centos-via-macmini
     HostName 192.168.0.113
     User foxmong
@@ -386,169 +362,194 @@ Host centos-via-macmini
     IdentityFile ~/.ssh/id_ed25519
 ```
 
+사용:
+
 ```bash
+sftp macmini
+sftp centos
 sftp centos-via-macmini
 ```
 
-### 9-3. VM Tailscale 설치 후 (추천)
-
-```bash
-sftp foxmong@VM-Tailscale-IP
-```
-
-맥미니 거치지 않고 VM에 직접 SFTP.
+접속 후 동일하게 `put` / `get` 사용.
 
 ---
 
-## 10. 추천 폴더 경로
+## 8. 추천 서버 경로
 
-| 경로 | 용도 | SFTP 사용 |
-|---|---|---|
-| `/Volumes/ServerData/Shared` | 노트북 ↔ 서버 파일 교환 | ✅ 추천 |
-| `/Volumes/ServerData/Projects` | 개발/작업 프로젝트 | ✅ |
-| `/Volumes/ServerData/Downloads` | 임시 다운로드 | ✅ |
-| `/Volumes/ServerData/AppData` | 앱/DB 데이터 | ⚠️ 관리용만 |
-| `/Volumes/ServerBackup` | 백업 전용 | ❌ SFTP 접근 지양 |
-
----
-
-## 11. 보안
-
-### 해야 할 것
-
-```text
-SSH 키 로그인 사용
-Tailscale로만 외부 접속 (포트포워딩 X)
-강한 macOS/VM 비밀번호
-Tailnet에 필요한 기기만 등록
-Shared/AppData 역할 분리
-```
-
-### 하지 말 것
-
-```text
-SSH 22번 포트 공유기에 외부 공개
-SMB 445 포트 인터넷 공개
-약한 비밀번호
-root SFTP 허용 (가능하면 일반 사용자만)
-```
-
-### root SFTP
-
-macOS/CentOS 기본은 **일반 사용자 SFTP**입니다.  
-`kimi`, `foxmong` 계정으로 접속하는 것이 안전합니다.
+| 서버 경로 | 용도 |
+|---|---|
+| `/Volumes/ServerData/Shared` | 노트북 ↔ 서버 파일 교환 (기본) |
+| `/Volumes/ServerData/Projects` | 작업/개발 프로젝트 |
+| `/Volumes/ServerData/Downloads` | 임시 파일 |
+| `/Volumes/ServerData/AppData` | 앱 데이터 (신중히) |
+| `/Volumes/ServerBackup` | 백업 전용 — SFTP 접근 지양 |
 
 ---
 
-## 12. 문제 해결
-
-### Connection refused
-
-```bash
-# 맥미니에서
-sudo systemsetup -getremotelogin
-tailscale status
-```
-
-SSH OFF 또는 Tailscale 미연결 확인.
-
-### Permission denied
-
-- 사용자명 확인 (`kimi` / `foxmong`)
-- 비밀번호 또는 SSH 키 확인
-- `ssh-copy-id` 재실행
-
-### Tailscale IP로 안 됨
-
-```bash
-# 노트북에서
-tailscale status
-ping 100.127.117.23
-```
-
-같은 Tailnet인지, 맥미니 Tailscale Connected인지 확인.
-
-### 경로 없음 (No such file)
-
-```bash
-# 맥미니에서
-ls /Volumes/ServerData/Shared
-```
-
-ServerData 마운트 여부 확인.
-
-### scp/sftp 느림
-
-- 대용량은 `rsync` 사용
-- Wi-Fi보다 유선 LAN이 빠름
-- Tailscale은 집 밖에서 약간 지연 가능 (정상)
-
----
-
-## 13. 자주 쓰는 명령어 치트시트
+## 9. 자주 쓰는 명령어 치트시트
 
 ```bash
 # === 접속 ===
-sftp kimi@100.127.117.23
-ssh kimi@100.127.117.23
+sftp kimi@100.127.117.23          # 밖
+sftp kimi@192.168.0.100           # 집 안
+sftp macmini                      # config 사용
 
-# === 파일 1개 ===
-scp local.txt kimi@100.127.117.23:/Volumes/ServerData/Shared/
-scp kimi@100.127.117.23:/Volumes/ServerData/Shared/remote.txt ./
+# === sftp> 안에서 (반드시 접속 후) ===
 
-# === 폴더 ===
-scp -r ./folder kimi@100.127.117.23:/Volumes/ServerData/Projects/
-rsync -avh ./folder/ kimi@100.127.117.23:/Volumes/ServerData/Projects/folder/
-
-# === SFTP 내부 ===
+# 경로
+pwd
+lpwd
 cd /Volumes/ServerData/Shared
 lcd ~/Downloads
-put file.pdf
-get file.pdf
-get -r project/
+ls
+lls
+
+# 업로드 (내 PC → 서버)
+put file.txt
+put -r folder/
+mput *.pdf
+
+# 다운로드 (서버 → 내 PC)
+get file.txt
+get -r folder/
+mget *.pdf
+
+# 기타
+mkdir new-folder
+rm old-file.txt
+rename old.txt new.txt
 exit
 
-# === VM (Jump) ===
-scp -J kimi@100.127.117.23 file.txt foxmong@192.168.0.113:~/
-
-# === 확인 ===
-tailscale ip -4          # 맥미니
-ssh kimi@100.127.117.23 "ls /Volumes/ServerData"
+# === VM ===
+sftp foxmong@192.168.0.113
+sftp -J kimi@100.127.117.23 foxmong@192.168.0.113
 ```
 
 ---
 
-## 14. 시나리오별 추천
+## 10. 흔한 실수
 
-| 하고 싶은 일 | 추천 방법 |
-|---|---|
-| PDF/문서 몇 개 올리기 | `scp put` 또는 Cyberduck |
-| 프로젝트 폴더 동기화 | `rsync` |
-| Finder처럼 Shared 탐색 | SMB `smb://100.127.117.23/Shared` |
-| ServerData 임의 경로 접근 | SFTP/scp |
-| 코드 편집 | VS Code Remote-SSH |
-| VM에 파일 넣기 | `scp foxmong@192.168.0.113` 또는 Jump Host |
-| VM ↔ ServerData | VM 안 SSHFS (이미 구성됨) |
+### ❌ 일반 터미널에서 put / get
+
+```bash
+put file.txt
+# zsh: command not found: put
+```
+
+→ `sftp` 접속 먼저.
+
+### ❌ SSH 세션에서 put / get
+
+```bash
+ssh kimi@100.127.117.23
+put file.txt
+# 작동 안 함
+```
+
+→ SSH가 아니라 **SFTP**로 접속.
+
+### ❌ 경로 이동 없이 put
+
+```text
+sftp> put file.txt
+# 어디로 올라갔는지 모름
+```
+
+→ `cd`(서버), `lcd`(로컬) 먼저 확인.
+
+### ✅ 올바른 순서
+
+```bash
+sftp kimi@100.127.117.23
+cd /Volumes/ServerData/Shared
+lcd ~/Downloads
+put file.txt
+exit
+```
 
 ---
 
-## 15. 현재 환경 빠른 참조
+## 11. GUI로 SFTP 쓰기 (선택)
+
+터미널 `sftp` 대신 GUI를 쓰면 **내부적으로 같은 SFTP(get/put)** 입니다.
+
+### Cyberduck (macOS)
+
+```text
+프로토콜: SFTP
+서버: 100.127.117.23
+포트: 22
+사용자: kimi
+SSH 키 또는 비밀번호
+```
+
+드래그 앤 드롭 = put / get 과 동일.
+
+### FileZilla
+
+```text
+호스트: sftp://100.127.117.23
+사용자: kimi
+포트: 22
+```
+
+---
+
+## 12. 보안
+
+```text
+✅ Tailscale로만 외부 접속
+✅ SSH 키 로그인
+✅ kimi / foxmong 일반 사용자만
+✅ Shared / Projects 위주 사용
+
+❌ SSH 22번 포트 공유기 외부 공개
+❌ root SFTP
+❌ ServerBackup 임의 수정
+```
+
+---
+
+## 13. 문제 해결
+
+| 증상 | 확인 |
+|---|---|
+| `command not found: put` | `sftp` 접속 안 함 → `sftp user@host` 먼저 |
+| Connection refused | 맥미니 SSH ON, Tailscale Connected 확인 |
+| Permission denied | 사용자명·비밀번호·SSH 키 확인 |
+| No such file | `cd` / `lcd` 경로 확인, `ls` / `lls`로 목록 확인 |
+| Tailscale 접속 안 됨 | 노트북·맥미니 같은 Tailnet, `ping 100.127.117.23` |
+| put 후 파일 안 보임 | `cd` 경로 확인, `ls`로 서버 목록 확인 |
+
+---
+
+## 14. 현재 환경 빠른 참조
 
 ```text
 맥미니
-  사용자:     kimi
-  집 IP:      192.168.0.100
-  Tailscale:  100.127.117.23
-  SFTP:       sftp kimi@100.127.117.23
-  Shared:     /Volumes/ServerData/Shared
+  SFTP 접속:  sftp kimi@100.127.117.23
+  Shared:     cd /Volumes/ServerData/Shared
+  Projects:   cd /Volumes/ServerData/Projects
 
 CentOS VM
-  사용자:     foxmong
-  집 IP:      192.168.0.113
-  SFTP:       sftp foxmong@192.168.0.113
-  ServerData: /mnt/serverdata (SSHFS, VM 안)
+  SFTP 접속:  sftp foxmong@192.168.0.113
+  홈:         cd ~
+```
+
+### 한 세션 예시 (복사해서 사용)
+
+```bash
+sftp kimi@100.127.117.23
+```
+
+```text
+cd /Volumes/ServerData/Shared
+lcd ~/Downloads
+put 내파일.pdf
+ls
+exit
 ```
 
 ---
 
-*맥미니 홈서버 — Tailscale + SFTP 파일 이동 가이드*
+*맥미니 홈서버 — Tailscale + SFTP (get/put) 파일 이동 가이드*

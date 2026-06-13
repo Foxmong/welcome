@@ -4,7 +4,7 @@
 
 | 파일 | 내용 |
 |---|---|
-| [tailscale-sftp-file-transfer.md](./tailscale-sftp-file-transfer.md) | Tailscale + SFTP 파일 업/다운, scp, rsync, GUI, 보안 |
+| [tailscale-sftp-file-transfer.md](./tailscale-sftp-file-transfer.md) | Tailscale + SFTP (get/put) 파일 이동, 세팅, 치트시트 |
 
 ## 맥미니 경로
 
