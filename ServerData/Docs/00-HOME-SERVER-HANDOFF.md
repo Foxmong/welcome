@@ -159,7 +159,7 @@ VirtualBox ── CentOS VM
 
 ### 문서
 
-- [x] 작업 일지 06-11 ~ 06-15, 06-14 ops-stabilization
+- [x] 작업 일지 06-11, 06-12, 06-14
 - [x] Tailscale + SFTP 가이드
 - [x] 이 핸드오프 문서
 
@@ -355,8 +355,7 @@ sftp kimi@100.127.117.23
 | **00-HOME-SERVER-HANDOFF.md** | **← 이 파일 (새 세션 시작점)** |
 | setup-logs/2026-06-11-macmini-server-setup.md | 1일차: 디스크, Tailscale, VM 설치 |
 | setup-logs/2026-06-12-macmini-server-setup.md | 2일차: SSHFS, Guest Additions ARM |
-| setup-logs/2026-06-14-macmini-server-setup.md | 3일차: Docker, Kuma, restic |
-| setup-logs/2026-06-14-ops-stabilization.md | **운영 안정화 완료** (SSHFS/Kuma/autostart/restic) |
+| setup-logs/2026-06-14-macmini-server-setup.md | 3일차: Docker, Kuma, restic, **운영 안정화** |
 | setup-logs/2026-06-15-macmini-server-setup.md | 4일차: SSHFS 자동화, 앱/Tunnel 템플릿 |
 | guides/tailscale-sftp-file-transfer.md | SFTP get/put 가이드 |
 | guides/ops-stabilization.md | **운영 안정화 실행 순서** |
