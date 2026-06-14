@@ -305,10 +305,20 @@ crontab -l
 
 ```bash
 ip route | grep docker0
-docker exec uptime-kuma sh -c "nc -zv 172.17.0.1 22"
+# 예: 172.17.0.0/16 dev docker0 ... → 게이트웨이 172.17.0.1
 ```
 
-`Connected` 확인.
+컨테이너에 `nc` 없을 수 있음 (`nc: not found` → **정상**, TCP 모니터와 무관).
+
+대안 확인:
+
+```bash
+# 호스트에서
+nc -zv 172.17.0.1 22
+
+# 또는 Uptime Kuma 컨테이너에서 bash/wget
+docker exec uptime-kuma sh -c "timeout 2 sh -c 'echo > /dev/tcp/172.17.0.1/22'" 2>/dev/null && echo OK
+```
 
 #### 2) Uptime Kuma 모니터 수정
 
