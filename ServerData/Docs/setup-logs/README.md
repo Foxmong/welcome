@@ -11,7 +11,7 @@
 | [2026-06-11-macmini-server-setup.md](./2026-06-11-macmini-server-setup.md) | 2026-06-11 | 저장장치 구성, Tailscale, SSH, SMB, CentOS VM 설치까지 |
 | [2026-06-12-macmini-server-setup.md](./2026-06-12-macmini-server-setup.md) | 2026-06-12 | Guest Additions 실패→SSHFS, ServerData 마운트, ARM64 한계, 다음 단계 |
 | [2026-06-14-macmini-server-setup.md](./2026-06-14-macmini-server-setup.md) | 2026-06-14 | Docker, Uptime Kuma, restic+cron, 모니터 Down 이슈, 홈서버 로드맵 |
-| [2026-06-15-macmini-server-setup.md](./2026-06-15-macmini-server-setup.md) | 2026-06-15 | SSHFS 자동화 스크립트, Email/앱/Tunnel 가이드 |
+| [2026-06-15-macmini-server-setup.md](./2026-06-15-macmini-server-setup.md) | 2026-06-15 | SSHFS 자동화 스크립트, 앱/Tunnel 가이드 |
 
 ## 관련 가이드
 
@@ -19,7 +19,6 @@
 |---|---|
 | [../guides/tailscale-sftp-file-transfer.md](../guides/tailscale-sftp-file-transfer.md) | Tailscale + SFTP 파일 이동, 명령어, 세팅 |
 | [../guides/vm-sshfs-automount.md](../guides/vm-sshfs-automount.md) | SSHFS 자동 마운트 |
-| [../guides/uptime-kuma-email-alerts.md](../guides/uptime-kuma-email-alerts.md) | Email 알림 검증 |
 | [../guides/app-server-docker-compose.md](../guides/app-server-docker-compose.md) | 앱 서버 |
 | [../guides/cloudflare-tunnel.md](../guides/cloudflare-tunnel.md) | Cloudflare Tunnel |
 

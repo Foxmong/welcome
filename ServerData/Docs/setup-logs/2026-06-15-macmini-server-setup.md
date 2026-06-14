@@ -13,7 +13,6 @@
 
 ```text
 Phase A  VM SSHFS 부팅 자동화 (ssh-copy-id + systemd)
-Phase B  Email SMTP 알림 검증 체크리스트
 Phase C  앱 서버 템플릿 (whoami + NPM)
 Phase D  Cloudflare Tunnel template + 가이드
 ```
@@ -23,7 +22,6 @@ Phase D  Cloudflare Tunnel template + 가이드
 ```text
 ✅ SSHFS 자동 마운트 스크립트 + systemd unit
 ✅ 맥미니 VM autostart launchd plist
-✅ Email 알림 확인 가이드
 ✅ docker-compose 템플릿 (whoami, NPM, cloudflared)
 ✅ 앱 서버 / Cloudflare Tunnel 가이드
 ⬜ 실제 VM·맥에서 스크립트 실행 및 검증 (사용자)
@@ -75,23 +73,7 @@ launchctl load ~/Library/LaunchAgents/com.kimi.centos-vm-autostart.plist
 
 ---
 
-## 3. Email 알림 확인
-
-가이드: [guides/uptime-kuma-email-alerts.md](../guides/uptime-kuma-email-alerts.md)
-
-### 사용자 체크리스트
-
-```text
-[ ] Settings → Notifications → Email → Test Success
-[ ] 받은편함(스팸 포함) 테스트 메일 확인
-[ ] 4개 모니터에 알림 연결
-[ ] Mac mini SSH → Pause 1h → Down 메일 수신 → Resume
-[ ] tail /Volumes/ServerBackup/logs/backup.log (03:00 cron)
-```
-
----
-
-## 4. 앱 서버 (whoami)
+## 3. 앱 서버 (whoami)
 
 가이드: [guides/app-server-docker-compose.md](../guides/app-server-docker-compose.md)
 
@@ -106,7 +88,7 @@ Tailscale: `http://100.69.135.104:8080`
 
 ---
 
-## 5. Cloudflare Tunnel
+## 4. Cloudflare Tunnel
 
 가이드: [guides/cloudflare-tunnel.md](../guides/cloudflare-tunnel.md)
 
@@ -120,7 +102,7 @@ Zero Trust Public Hostname 예: `status.yourdomain.com` → `192.168.0.113:3001`
 
 ---
 
-## 6. 진행 상태
+## 5. 진행 상태
 
 ```text
 [핵심 구축]     ████████████████████  100%
@@ -130,22 +112,20 @@ Zero Trust Public Hostname 예: `status.yourdomain.com` → `192.168.0.113:3001`
 
 ---
 
-## 7. 다음 세션 (맥/VM에서)
+## 6. 다음 세션 (맥/VM에서)
 
 1. `install-sshfs-automount.sh` 실행 + 재부팅 검증
-2. Email Down 알림 실제 수신
-3. whoami `docker compose up -d`
-4. Cloudflare Tunnel 토큰 + Public Hostname
-5. (선택) NPM :81
+2. whoami `docker compose up -d`
+3. Cloudflare Tunnel 토큰 + Public Hostname
+4. (선택) NPM :81
 
 ---
 
-## 8. 새 파일 목록
+## 7. 새 파일 목록
 
 | 경로 | 내용 |
 |---|---|
 | guides/vm-sshfs-automount.md | SSHFS 자동 마운트 |
-| guides/uptime-kuma-email-alerts.md | Email 검증 |
 | guides/app-server-docker-compose.md | 앱 서버 |
 | guides/cloudflare-tunnel.md | Tunnel |
 | scripts/centos/* | SSHFS 설치 |

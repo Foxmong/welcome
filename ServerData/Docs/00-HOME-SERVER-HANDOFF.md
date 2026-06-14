@@ -22,7 +22,7 @@ CentOS VM          → Linux 실습, Docker, Uptime Kuma
 ```
 
 **핵심 구축:** ✅ 완료 (~100%)  
-**운영 안정화:** 🔧 ~90% (SSHFS 자동화 스크립트 준비, Email 실제 Down 테스트 남음)  
+**운영 안정화:** 🔧 ~90% (SSHFS 자동화 스크립트 준비, VM 배포·검증 남음)  
 **앱 서버 확장:** 🔧 ~20% (whoami/NPM/cloudflared 템플릿·가이드 준비, VM 배포 대기)
 
 ---
@@ -152,7 +152,7 @@ VirtualBox ── CentOS VM
 - [x] Docker CE (repo releasever=9)
 - [x] Uptime Kuma (`~/docker/uptime-kuma`, port 3001)
 - [x] Uptime Kuma 모니터 5종 등록
-- [x] Uptime Kuma Email(SMTP) 알림 설정 (진행)
+- [x] Uptime Kuma 알림 — **미사용** (대시보드 모니터링만)
 
 ### 문서
 
@@ -225,7 +225,7 @@ VirtualBox Guest Additions → Detected unsupported arm64
 | CentOS VM Tailscale | Ping | 100.69.135.104 | |
 | Uptime Kuma Self | HTTP | http://127.0.0.1:3001 | |
 
-**알림:** Email (SMTP) — Gmail/Naver 등, Test 후 모니터에 연결
+**알림:** 사용 안 함 (필요 시 Uptime Kuma UI에서만 설정)
 
 ---
 
@@ -320,7 +320,6 @@ sftp kimi@100.127.117.23
 ### 바로 (맥/VM에서 실행)
 
 - [ ] **SSHFS 자동화:** VM에서 `install-sshfs-automount.sh` → 재부팅 후 `mount | grep serverdata`
-- [ ] **Email:** [uptime-kuma-email-alerts.md](./guides/uptime-kuma-email-alerts.md) — Test + Pause Down 메일
 - [ ] cron 백업 로그 확인 (`tail backup.log`, 새벽 3시 이후)
 
 ### 운영 안정화
@@ -354,7 +353,6 @@ sftp kimi@100.127.117.23
 | setup-logs/2026-06-15-macmini-server-setup.md | 4일차: SSHFS 자동화, 앱/Tunnel 템플릿 |
 | guides/tailscale-sftp-file-transfer.md | SFTP get/put 가이드 |
 | guides/vm-sshfs-automount.md | SSHFS 부팅 자동 마운트 |
-| guides/uptime-kuma-email-alerts.md | Email 알림 검증 |
 | guides/app-server-docker-compose.md | 앱 서버 (whoami, NPM) |
 | guides/cloudflare-tunnel.md | Cloudflare Tunnel |
 | scripts/centos/ | SSHFS install 스크립트 |
@@ -384,7 +382,7 @@ https://github.com/Foxmong/welcome/tree/cursor/server-setup-docs-f7a6/ServerData
 - 맥미니 Tailscale 100.127.117.23, SSH/SMB/restic 완료
 - CentOS VM foxmong@100.69.135.104, Docker, Uptime Kuma :3001
 - SSHFS /mnt/serverdata, Docker는 ~/docker/ 로컬
-- 다음: install-sshfs-automount.sh 실행, Email Down 테스트, whoami+Tunnel 배포
+- 다음: install-sshfs-automount.sh 실행, whoami+Tunnel 배포
 ```
 
 ---

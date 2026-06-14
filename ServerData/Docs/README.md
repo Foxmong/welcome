@@ -19,7 +19,6 @@
 |---|---|
 | [guides/tailscale-sftp-file-transfer.md](./guides/tailscale-sftp-file-transfer.md) | Tailscale + SFTP (get/put) |
 | [guides/vm-sshfs-automount.md](./guides/vm-sshfs-automount.md) | SSHFS 자동 마운트 |
-| [guides/uptime-kuma-email-alerts.md](./guides/uptime-kuma-email-alerts.md) | Email 알림 검증 |
 | [guides/app-server-docker-compose.md](./guides/app-server-docker-compose.md) | 앱 서버 |
 | [guides/cloudflare-tunnel.md](./guides/cloudflare-tunnel.md) | Cloudflare Tunnel |
 

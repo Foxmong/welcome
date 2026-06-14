@@ -29,7 +29,7 @@ Phase 6  외부 접속·모니터링 확인
 ✅ 홈서버 전체 로드맵 정리
 ✅ CentOS VM SSH 모니터 Up 전환 (172.17.0.1:22)
 ✅ restic 복구 테스트
-✅ Uptime Kuma 알림 설정
+⏭ Uptime Kuma 알림 — 미사용 (대시보드만)
 ```
 
 ---
@@ -396,66 +396,9 @@ restic -r /Volumes/ServerBackup/restic-repo snapshots
 
 ---
 
-### 2-9. Uptime Kuma 알림 설정 ✅ (Email SMTP)
+### 2-9. Uptime Kuma 알림 — 미사용
 
-**접속:** `http://100.69.135.104:3001`  
-**선택:** Email (SMTP) — Telegram 대신 이메일 알림 사용.
-
-#### Uptime Kuma Email (SMTP) 설정
-
-**Settings → Notifications → Setup Notification → Email (SMTP)**
-
-| 항목 | 설명 | 예시 (Gmail) |
-|---|---|---|
-| 이름 | 알림 이름 | `내 Email 알림` |
-| 호스트네임 | SMTP 서버 | `smtp.gmail.com` |
-| 포트 | SMTP 포트 | `587` |
-| 보안 | 암호화 | **STARTTLS (587)** |
-| TLS 에러 무시 | ❌ 체크 안 함 | |
-| Username | SMTP 로그인 | `your@gmail.com` |
-| Password | SMTP 비밀번호 | **앱 비밀번호** (일반 비밀번호 X) |
-| 보내는 이메일 | From | `"Uptime Kuma" <your@gmail.com>` |
-| 받는 이메일 | To | `your@gmail.com` |
-
-**Test** → Save → 각 모니터 **Notification**에 연결.
-
-#### Gmail 앱 비밀번호 (Gmail 사용 시)
-
-```text
-Google 계정 → 보안 → 2단계 인증 ON
-→ 앱 비밀번호 생성 → 16자리 비밀번호
-→ Uptime Kuma Password란에 입력
-```
-
-#### Naver 메일 (참고)
-
-| 항목 | 값 |
-|---|---|
-| 호스트 | `smtp.naver.com` |
-| 포트 | `587` |
-| 보안 | STARTTLS |
-| Username | `naver_id` (전체 이메일) |
-| Password | 네이버 비밀번호 (2단계 시 앱 비밀번호) |
-
-#### Outlook / Microsoft 365 (참고)
-
-| 항목 | 값 |
-|---|---|
-| 호스트 | `smtp.office365.com` |
-| 포트 | `587` |
-| 보안 | STARTTLS |
-
-#### 알림 연결 대상 (권장)
-
-| 모니터 | 알림 |
-|---|---|
-| Mac mini SSH | ✅ |
-| Mac mini Tailscale | ✅ |
-| CentOS VM SSH | ✅ |
-| CentOS VM Tailscale | ✅ |
-| Uptime Kuma Self | 선택 |
-
-**Down 시** 설정한 **받는 이메일**로 알림 수신.
+Email/Telegram 등 **알림은 사용하지 않음**. 모니터 상태는 Uptime Kuma 대시보드(`http://100.69.135.104:3001`)에서만 확인.
 
 ---
 
@@ -516,7 +459,7 @@ restic 저장소 비밀번호는 **복구 시 필수**. 별도 안전한 곳에 
 | SSHFS | ✅ /mnt/serverdata |
 | Docker | ✅ |
 | Uptime Kuma | ✅ ~/docker/uptime-kuma :3001 |
-| Uptime Kuma 알림 | ✅ Email (SMTP) |
+| Uptime Kuma 알림 | ⏭ 미사용 |
 | 모니터 5종 | ✅ 전부 Up (CentOS VM SSH → 172.17.0.1:22) |
 | restic 복구 테스트 | ✅ /tmp/restic-restore-test 검증 |
 
@@ -552,7 +495,6 @@ http://100.69.135.104:3001
 
 ```text
 [ ] cron 백업 로그 확인 (tail backup.log) — 다음날 03:00 이후
-[ ] Email Down 알림 실제 수신 테스트 (모니터 Pause → 메일 확인)
 ```
 
 ### 안정화 (선택)
@@ -620,7 +562,7 @@ sftp kimi@100.127.117.23
 ```text
 [1일차 06-11] ServerData/Backup, Tailscale, SSH, SMB, CentOS VM 설치
 [2일차 06-12] SSHFS, Guest Additions ARM 한계, SFTP 가이드
-[3일차 06-14] Docker, Uptime Kuma, restic+cron, 모니터 Up, 복구테스트, 알림
+[3일차 06-14] Docker, Uptime Kuma, restic+cron, 모니터 Up, 복구테스트
 
 [핵심 구축]     ████████████████████  100%
 [운영 안정화]   ████████████████░░░░  ~80%
