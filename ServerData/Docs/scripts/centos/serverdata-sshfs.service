@@ -7,7 +7,7 @@ Wants=network-online.target
 Type=forking
 ExecStart=/usr/bin/sshfs @SSH_ALIAS@:@REMOTE_PATH@ @MOUNT_POINT@ \
   -o reconnect,ServerAliveInterval=15,ServerAliveCountMax=3,_netdev,uid=%U,gid=%G
-ExecStop=/usr/bin/fusermount -u @MOUNT_POINT@
+ExecStop=@FUSERMOUNT@ -u @MOUNT_POINT@
 Restart=on-failure
 RestartSec=10
 

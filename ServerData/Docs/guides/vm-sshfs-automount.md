@@ -96,7 +96,7 @@ Wants=network-online.target
 Type=forking
 ExecStart=/usr/bin/sshfs macmini-serverdata:/Volumes/ServerData /mnt/serverdata \
   -o reconnect,ServerAliveInterval=15,ServerAliveCountMax=3,_netdev,uid=%U,gid=%G
-ExecStop=/usr/bin/fusermount -u /mnt/serverdata
+ExecStop=/usr/bin/fusermount3 -u /mnt/serverdata
 Restart=on-failure
 RestartSec=10
 

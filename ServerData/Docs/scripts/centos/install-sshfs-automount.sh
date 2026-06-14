@@ -23,6 +23,16 @@ SSH_ALIAS="${SSH_ALIAS:-macmini-serverdata}"
 SERVICE_NAME="serverdata-sshfs.service"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# CentOS Stream 10: fusermount3 (fuse3), 구버전: fusermount
+if command -v fusermount3 &>/dev/null; then
+  FUSERMOUNT="$(command -v fusermount3)"
+elif command -v fusermount &>/dev/null; then
+  FUSERMOUNT="$(command -v fusermount)"
+else
+  echo "오류: fusermount3/fusermount 없음. sudo dnf install -y fuse fuse-sshfs"
+  exit 1
+fi
+
 echo "==> SSHFS 자동 마운트 설치"
 echo "    원격: ${MAC_USER}@${MAC_HOST}:${REMOTE_PATH}"
 echo "    마운트: ${MOUNT_POINT}"
