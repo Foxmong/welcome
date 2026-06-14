@@ -1,0 +1,15 @@
+[Unit]
+Description=SSHFS mount Mac mini ServerData to /mnt/serverdata
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=forking
+ExecStart=/usr/bin/sshfs @SSH_ALIAS@:@REMOTE_PATH@ @MOUNT_POINT@ \
+  -o reconnect,ServerAliveInterval=15,ServerAliveCountMax=3,_netdev,uid=%U,gid=%G
+ExecStop=/usr/bin/fusermount -u @MOUNT_POINT@
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target

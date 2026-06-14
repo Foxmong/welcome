@@ -1,0 +1,9 @@
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      # Cloudflare Zero Trust → Tunnels → Configure → Docker 환경변수에서 복사
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN}

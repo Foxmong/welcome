@@ -3,7 +3,7 @@
 > **새 세션 시작 시 이 파일을 먼저 읽으세요.**  
 > 작업 일지·가이드·현재 상태·다음 단계를 한곳에 정리했습니다.
 
-- **최종 업데이트:** 2026-06-14
+- **최종 업데이트:** 2026-06-15
 - **서버:** kimiui-Macmini (Apple Silicon)
 - **작업자:** kimi
 - **목적:** 24/7 홈서버 — 외부 접속, Linux VM, 파일 공유, 모니터링, 백업, 추후 앱 서버
@@ -22,8 +22,8 @@ CentOS VM          → Linux 실습, Docker, Uptime Kuma
 ```
 
 **핵심 구축:** ✅ 완료 (~100%)  
-**운영 안정화:** 🔧 ~80% (자동화·알림 테스트 일부 남음)  
-**앱 서버 확장:** ⬜ 미착수
+**운영 안정화:** 🔧 ~90% (SSHFS 자동화 스크립트 준비, Email 실제 Down 테스트 남음)  
+**앱 서버 확장:** 🔧 ~20% (whoami/NPM/cloudflared 템플릿·가이드 준비, VM 배포 대기)
 
 ---
 
@@ -273,8 +273,9 @@ tail /Volumes/ServerBackup/logs/backup.log
 ### CentOS VM
 
 ```bash
-# SSHFS (재부팅 후 수동)
-sshfs kimi@192.168.0.100:/Volumes/ServerData /mnt/serverdata
+# SSHFS (자동화 설치 후 — 재부팅해도 유지)
+systemctl --user status serverdata-sshfs.service
+# 수동 1회: ./install-sshfs-automount.sh  (guides/vm-sshfs-automount.md)
 
 # Docker / Uptime Kuma
 cd ~/docker/uptime-kuma && docker compose up -d
@@ -309,31 +310,32 @@ sftp kimi@100.127.117.23
 | restic repo not found | `restic-repo` (resic 오타 주의) |
 | restic wrong password | backup.sh RESTIC_PASSWORD 와 동일 |
 | crontab vi 실패 | `(crontab -l; echo "...") \| crontab -` |
-| SSHFS VM 재부팅 후 풀림 | sshfs 재실행 (자동화 미완) |
+| SSHFS VM 재부팅 후 풀림 | `scripts/centos/install-sshfs-automount.sh` 실행 |
 | nc not found (Kuma 컨테이너) | 무시, 모니터 Hostname만 수정 |
 
 ---
 
 ## 11. 미완료 / 다음 작업 (우선순위)
 
-### 바로 (확인)
+### 바로 (맥/VM에서 실행)
 
-- [ ] CentOS VM SSH 모니터 172.17.0.1 → Up 100% 확인
-- [ ] Email SMTP Test 성공 + 5개 모니터 알림 연결
+- [ ] **SSHFS 자동화:** VM에서 `install-sshfs-automount.sh` → 재부팅 후 `mount | grep serverdata`
+- [ ] **Email:** [uptime-kuma-email-alerts.md](./guides/uptime-kuma-email-alerts.md) — Test + Pause Down 메일
 - [ ] cron 백업 로그 확인 (`tail backup.log`, 새벽 3시 이후)
 
-### 운영 안정화 (추천)
+### 운영 안정화
 
-- [ ] VM SSHFS 부팅 시 자동 마운트 + ssh-copy-id
-- [ ] VM 자동 시작 (VBoxManage + launchd)
+- [x] VM SSHFS 자동 마운트 **스크립트·가이드** ([vm-sshfs-automount.md](./guides/vm-sshfs-automount.md))
+- [ ] VM autostart plist 설치 ([scripts/macos/com.kimi.centos-vm-autostart.plist](./scripts/macos/com.kimi.centos-vm-autostart.plist))
 - [ ] macOS cron → launchd (선택)
 - [ ] SMB fileshare 전용 계정 (선택)
 
 ### 앱 서버 확장
 
-- [ ] ~/docker/myapp/ + docker-compose
-- [ ] Nginx Proxy Manager / Caddy
-- [ ] Cloudflare Tunnel + 도메인
+- [x] docker-compose 템플릿 (`scripts/docker/myapp`, `nginx-proxy-manager`, `cloudflared`)
+- [ ] VM 배포: `~/docker/myapp` whoami → [app-server-docker-compose.md](./guides/app-server-docker-compose.md)
+- [ ] Cloudflare Tunnel → [cloudflare-tunnel.md](./guides/cloudflare-tunnel.md)
+- [ ] Nginx Proxy Manager (선택)
 
 ### 하드웨어 (여유)
 
@@ -349,7 +351,14 @@ sftp kimi@100.127.117.23
 | setup-logs/2026-06-11-macmini-server-setup.md | 1일차: 디스크, Tailscale, VM 설치 |
 | setup-logs/2026-06-12-macmini-server-setup.md | 2일차: SSHFS, Guest Additions ARM |
 | setup-logs/2026-06-14-macmini-server-setup.md | 3일차: Docker, Kuma, restic |
+| setup-logs/2026-06-15-macmini-server-setup.md | 4일차: SSHFS 자동화, 앱/Tunnel 템플릿 |
 | guides/tailscale-sftp-file-transfer.md | SFTP get/put 가이드 |
+| guides/vm-sshfs-automount.md | SSHFS 부팅 자동 마운트 |
+| guides/uptime-kuma-email-alerts.md | Email 알림 검증 |
+| guides/app-server-docker-compose.md | 앱 서버 (whoami, NPM) |
+| guides/cloudflare-tunnel.md | Cloudflare Tunnel |
+| scripts/centos/ | SSHFS install 스크립트 |
+| scripts/docker/ | compose 템플릿 |
 
 ### 맥미니 실제 경로
 
@@ -375,7 +384,7 @@ https://github.com/Foxmong/welcome/tree/cursor/server-setup-docs-f7a6/ServerData
 - 맥미니 Tailscale 100.127.117.23, SSH/SMB/restic 완료
 - CentOS VM foxmong@100.69.135.104, Docker, Uptime Kuma :3001
 - SSHFS /mnt/serverdata, Docker는 ~/docker/ 로컬
-- 다음: VM SSHFS 자동화, 앱 서버, Cloudflare Tunnel
+- 다음: install-sshfs-automount.sh 실행, Email Down 테스트, whoami+Tunnel 배포
 ```
 
 ---

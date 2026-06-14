@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  맥미니 부팅 시 CentOS VM 자동 시작 (headless)
+  설치:
+    cp com.kimi.centos-vm-autostart.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.kimi.centos-vm-autostart.plist
+  확인:
+    launchctl list | grep centos
+    VBoxManage list runningvms
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.kimi.centos-vm-autostart</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/local/bin/VBoxManage</string>
+    <string>startvm</string>
+    <string>centos-server</string>
+    <string>--type</string>
+    <string>headless</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>StartInterval</key>
+  <integer>300</integer>
+  <key>StandardOutPath</key>
+  <string>/Volumes/ServerBackup/logs/vm-autostart.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Volumes/ServerBackup/logs/vm-autostart.log</string>
+</dict>
+</plist>
