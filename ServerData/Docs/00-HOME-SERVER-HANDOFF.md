@@ -3,7 +3,7 @@
 > **새 세션 시작 시 이 파일을 먼저 읽으세요.**  
 > 작업 일지·가이드·현재 상태·다음 단계를 한곳에 정리했습니다.
 
-- **최종 업데이트:** 2026-06-15
+- **최종 업데이트:** 2026-06-14 (운영 안정화 완료)
 - **서버:** kimiui-Macmini (Apple Silicon)
 - **작업자:** kimi
 - **목적:** 24/7 홈서버 — 외부 접속, Linux VM, 파일 공유, 모니터링, 백업, 추후 앱 서버
@@ -22,7 +22,7 @@ CentOS VM          → Linux 실습, Docker, Uptime Kuma
 ```
 
 **핵심 구축:** ✅ 완료 (~100%)  
-**운영 안정화:** 🔧 ~90% (SSHFS 자동화 스크립트 준비, VM 배포·검증 남음)  
+**운영 안정화:** ✅ 완료 (100%) — SSHFS automount, VM autostart, restic 확인  
 **앱 서버 확장:** 🔧 ~20% (whoami/NPM/cloudflared 템플릿·가이드 준비, VM 배포 대기)
 
 ---
@@ -141,6 +141,8 @@ VirtualBox ── CentOS VM
 - [x] restic 저장소 init (`/Volumes/ServerBackup/restic-repo`)
 - [x] backup.sh + cron 매일 03:00
 - [x] restic 복구 테스트 성공 (13 files → /tmp/restic-restore-test)
+- [x] VM autostart launchd (`com.kimi.centos-vm-autostart`)
+- [x] backup.log 생성·수동 백업 검증 (스냅샷 `05583a46` 5.035 GiB)
 
 ### CentOS VM
 
@@ -148,15 +150,16 @@ VirtualBox ── CentOS VM
 - [x] CentOS Stream 10, 사용자 **foxmong**, 호스트명 centos-server
 - [x] SSH 활성화
 - [x] VM Tailscale
-- [x] SSHFS ServerData → `/mnt/serverdata` (Guest Additions 대체)
+- [x] SSHFS ServerData → `/mnt/serverdata` — **부팅 자동** (`serverdata-sshfs.service`)
+- [x] SSH 키 `id_ed25519_serverdata` → kimi@192.168.0.100 (ssh-copy-id)
 - [x] Docker CE (repo releasever=9)
-- [x] Uptime Kuma (`~/docker/uptime-kuma`, port 3001)
+- [x] Uptime Kuma (`~/docker/uptime-kuma`, port 3001) — ServerData data 이전 완료
 - [x] Uptime Kuma 모니터 5종 등록
 - [x] Uptime Kuma 알림 — **미사용** (대시보드 모니터링만)
 
 ### 문서
 
-- [x] 작업 일지 06-11, 06-12, 06-14
+- [x] 작업 일지 06-11 ~ 06-15, 06-14 ops-stabilization
 - [x] Tailscale + SFTP 가이드
 - [x] 이 핸드오프 문서
 
@@ -310,27 +313,19 @@ sftp kimi@100.127.117.23
 | restic repo not found | `restic-repo` (resic 오타 주의) |
 | restic wrong password | backup.sh RESTIC_PASSWORD 와 동일 |
 | crontab vi 실패 | `(crontab -l; echo "...") \| crontab -` |
-| SSHFS VM 재부팅 후 풀림 | `scripts/centos/install-sshfs-automount.sh` 실행 |
+| SSHFS VM 재부팅 후 풀림 | `systemctl --user status serverdata-sshfs` / 재시작 |
+| `fusermount` 없음 (CentOS) | `fusermount3` 사용 |
+| `bad interpreter: /bin/bash^M` | `sed -i '' 's/\r$//'` (Mac) 또는 `sed -i 's/\r$//'` (Linux) |
+| Docker + SSHFS bind 실패 | `~/docker/` 로컬 (`~/docker/uptime-kuma/data`) |
 | nc not found (Kuma 컨테이너) | 무시, 모니터 Hostname만 수정 |
 
 ---
 
 ## 11. 미완료 / 다음 작업 (우선순위)
 
-### 바로 (맥/VM에서 실행)
+### 확인 (한 번만)
 
-→ **[ops-stabilization.md](./guides/ops-stabilization.md)** 한 문서에 순서 정리
-
-- [ ] **SSHFS 자동화:** VM에서 `install-sshfs-automount.sh` → 재부팅 후 `verify-ops-stabilization.sh`
-- [ ] **VM autostart:** 맥에서 `install-vm-autostart.sh`
-- [ ] cron 백업 로그 확인 (`tail backup.log`, 새벽 3시 이후)
-
-### 운영 안정화
-
-- [x] VM SSHFS 자동 마운트 **스크립트·가이드** ([vm-sshfs-automount.md](./guides/vm-sshfs-automount.md))
-- [ ] VM autostart plist 설치 ([scripts/macos/com.kimi.centos-vm-autostart.plist](./scripts/macos/com.kimi.centos-vm-autostart.plist))
-- [ ] macOS cron → launchd (선택)
-- [ ] SMB fileshare 전용 계정 (선택)
+- [ ] **cron 자동 백업:** 내일 03:00 이후 `tail /Volumes/ServerBackup/logs/backup.log`
 
 ### 앱 서버 확장
 
@@ -338,6 +333,14 @@ sftp kimi@100.127.117.23
 - [ ] VM 배포: `~/docker/myapp` whoami → [app-server-docker-compose.md](./guides/app-server-docker-compose.md)
 - [ ] Cloudflare Tunnel → [cloudflare-tunnel.md](./guides/cloudflare-tunnel.md)
 - [ ] Nginx Proxy Manager (선택)
+
+### 운영 안정화 — ✅ 완료 (2026-06-14)
+
+- [x] SSHFS automount + 재부팅 검증 → [2026-06-14-ops-stabilization.md](./setup-logs/2026-06-14-ops-stabilization.md)
+- [x] VM autostart `install-vm-autostart.sh`
+- [x] restic 수동 백업 + backup.log
+- [ ] macOS cron → launchd (선택)
+- [ ] SMB fileshare 전용 계정 (선택)
 
 ### 하드웨어 (여유)
 
@@ -353,8 +356,10 @@ sftp kimi@100.127.117.23
 | setup-logs/2026-06-11-macmini-server-setup.md | 1일차: 디스크, Tailscale, VM 설치 |
 | setup-logs/2026-06-12-macmini-server-setup.md | 2일차: SSHFS, Guest Additions ARM |
 | setup-logs/2026-06-14-macmini-server-setup.md | 3일차: Docker, Kuma, restic |
+| setup-logs/2026-06-14-ops-stabilization.md | **운영 안정화 완료** (SSHFS/Kuma/autostart/restic) |
 | setup-logs/2026-06-15-macmini-server-setup.md | 4일차: SSHFS 자동화, 앱/Tunnel 템플릿 |
 | guides/tailscale-sftp-file-transfer.md | SFTP get/put 가이드 |
+| guides/ops-stabilization.md | **운영 안정화 실행 순서** |
 | guides/vm-sshfs-automount.md | SSHFS 부팅 자동 마운트 |
 | guides/app-server-docker-compose.md | 앱 서버 (whoami, NPM) |
 | guides/cloudflare-tunnel.md | Cloudflare Tunnel |
@@ -385,7 +390,7 @@ https://github.com/Foxmong/welcome/tree/cursor/server-setup-docs-f7a6/ServerData
 - 맥미니 Tailscale 100.127.117.23, SSH/SMB/restic 완료
 - CentOS VM foxmong@100.69.135.104, Docker, Uptime Kuma :3001
 - SSHFS /mnt/serverdata, Docker는 ~/docker/ 로컬
-- 다음: install-sshfs-automount.sh 실행, whoami+Tunnel 배포
+- 다음: cron backup.log 확인(내일), whoami+Tunnel 배포
 ```
 
 ---

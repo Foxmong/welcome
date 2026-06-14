@@ -24,7 +24,7 @@ Phase D  Cloudflare Tunnel template + 가이드
 ✅ 맥미니 VM autostart launchd plist
 ✅ docker-compose 템플릿 (whoami, NPM, cloudflared)
 ✅ 앱 서버 / Cloudflare Tunnel 가이드
-⬜ 실제 VM·맥에서 스크립트 실행 및 검증 (사용자)
+✅ 실제 실행 완료 → [2026-06-14-ops-stabilization.md](./2026-06-14-ops-stabilization.md)
 ```
 
 ---

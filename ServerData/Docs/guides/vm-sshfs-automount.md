@@ -157,6 +157,7 @@ launchctl load ~/Library/LaunchAgents/com.kimi.centos-vm-autostart.plist
 | 부팅 후 마운트 안 됨 | `loginctl enable-linger foxmong` 확인 |
 | 맥미니 꺼짐/슬립 | 맥미니 `pmset` 절전 방지, VM autostart plist |
 | `Connection reset` / 타임아웃 | 맥미니 SSH ON, 192.168.0.100 ping |
+| `fusermount: 명령어를 찾을 수 없음` | CentOS → `fusermount3` 사용 (스크립트 최신版) |
 | Docker bind mount on SSHFS | ❌ 불가 — `~/docker/` 로컬 사용 |
 
 ---

@@ -7,12 +7,15 @@
 
 ## 체크리스트
 
+> **2026-06-14 완료** — 상세: [setup-logs/2026-06-14-ops-stabilization.md](../setup-logs/2026-06-14-ops-stabilization.md)
+
 ```text
-[ ] 1. VM — SSHFS 자동 마운트 (install-sshfs-automount.sh)
-[ ] 2. VM — 재부팅 후 /mnt/serverdata 확인
-[ ] 3. 맥 — CentOS VM autostart (launchd)
-[ ] 4. 맥 — restic cron / backup.log 확인
-[ ] 5. (선택) VM — Uptime Kuma 기동 확인
+[x] 1. VM — SSHFS 자동 마운트 (install-sshfs-automount.sh)
+[x] 2. VM — 재부팅 후 /mnt/serverdata 확인
+[x] 3. 맥 — CentOS VM autostart (launchd)
+[x] 4. 맥 — restic cron / backup.log 확인
+[x] 5. VM — Uptime Kuma ~/docker/uptime-kuma 기동
+[ ] 6. 맥 — 내일 03:00 cron backup.log 자동 실행 확인
 ```
 
 ---

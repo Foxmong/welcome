@@ -11,6 +11,7 @@
 | [setup-logs/2026-06-11-macmini-server-setup.md](./setup-logs/2026-06-11-macmini-server-setup.md) | 2026-06-11 |
 | [setup-logs/2026-06-12-macmini-server-setup.md](./setup-logs/2026-06-12-macmini-server-setup.md) | 2026-06-12 |
 | [setup-logs/2026-06-14-macmini-server-setup.md](./setup-logs/2026-06-14-macmini-server-setup.md) | 2026-06-14 |
+| [setup-logs/2026-06-14-ops-stabilization.md](./setup-logs/2026-06-14-ops-stabilization.md) | 2026-06-14 ops |
 | [setup-logs/2026-06-15-macmini-server-setup.md](./setup-logs/2026-06-15-macmini-server-setup.md) | 2026-06-15 |
 
 ## 가이드
