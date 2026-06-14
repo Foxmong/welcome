@@ -15,7 +15,8 @@
 
 | 파일 | 용도 |
 |---|---|
-| [macos/com.kimi.centos-vm-autostart.plist](./macos/com.kimi.centos-vm-autostart.plist) | 부팅 시 VirtualBox VM 시작 |
+| [macos/install-vm-autostart.sh](./macos/install-vm-autostart.sh) | 부팅 시 VirtualBox VM 시작 |
+| [centos/verify-ops-stabilization.sh](./centos/verify-ops-stabilization.sh) | VM 운영 상태 검증 |
 
 ## Docker compose (VM ~/docker/ 로 복사)
 

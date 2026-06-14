@@ -18,6 +18,7 @@
 | 파일 | 내용 |
 |---|---|
 | [guides/tailscale-sftp-file-transfer.md](./guides/tailscale-sftp-file-transfer.md) | Tailscale + SFTP (get/put) |
+| [guides/ops-stabilization.md](./guides/ops-stabilization.md) | 운영 안정화 |
 | [guides/vm-sshfs-automount.md](./guides/vm-sshfs-automount.md) | SSHFS 자동 마운트 |
 | [guides/app-server-docker-compose.md](./guides/app-server-docker-compose.md) | 앱 서버 |
 | [guides/cloudflare-tunnel.md](./guides/cloudflare-tunnel.md) | Cloudflare Tunnel |

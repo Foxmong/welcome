@@ -319,7 +319,10 @@ sftp kimi@100.127.117.23
 
 ### 바로 (맥/VM에서 실행)
 
-- [ ] **SSHFS 자동화:** VM에서 `install-sshfs-automount.sh` → 재부팅 후 `mount | grep serverdata`
+→ **[ops-stabilization.md](./guides/ops-stabilization.md)** 한 문서에 순서 정리
+
+- [ ] **SSHFS 자동화:** VM에서 `install-sshfs-automount.sh` → 재부팅 후 `verify-ops-stabilization.sh`
+- [ ] **VM autostart:** 맥에서 `install-vm-autostart.sh`
 - [ ] cron 백업 로그 확인 (`tail backup.log`, 새벽 3시 이후)
 
 ### 운영 안정화
