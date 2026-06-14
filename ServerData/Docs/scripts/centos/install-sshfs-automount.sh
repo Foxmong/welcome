@@ -86,7 +86,7 @@ ssh -o BatchMode=yes -o ConnectTimeout=10 "${SSH_ALIAS}" "echo OK: $(hostname)" 
 
 # 6) 기존 마운트 해제 후 테스트 마운트
 if mountpoint -q "${MOUNT_POINT}"; then
-  fusermount -u "${MOUNT_POINT}" 2>/dev/null || sudo umount "${MOUNT_POINT}" 2>/dev/null || true
+  "${FUSERMOUNT}" -u "${MOUNT_POINT}" 2>/dev/null || sudo umount "${MOUNT_POINT}" 2>/dev/null || true
 fi
 
 echo "==> 테스트 마운트"
@@ -94,7 +94,7 @@ sshfs "${SSH_ALIAS}:${REMOTE_PATH}" "${MOUNT_POINT}" \
   -o reconnect,ServerAliveInterval=15,ServerAliveCountMax=3,uid="$(id -u)",gid="$(id -g)"
 ls "${MOUNT_POINT}" >/dev/null
 echo "    마운트 OK: $(df -h "${MOUNT_POINT}" | tail -1)"
-fusermount -u "${MOUNT_POINT}"
+"${FUSERMOUNT}" -u "${MOUNT_POINT}"
 
 # 7) systemd user 서비스 설치
 mkdir -p ~/.config/systemd/user
@@ -102,6 +102,7 @@ sed \
   -e "s|@SSH_ALIAS@|${SSH_ALIAS}|g" \
   -e "s|@REMOTE_PATH@|${REMOTE_PATH}|g" \
   -e "s|@MOUNT_POINT@|${MOUNT_POINT}|g" \
+  -e "s|@FUSERMOUNT@|${FUSERMOUNT}|g" \
   "${SCRIPT_DIR}/serverdata-sshfs.service" > ~/.config/systemd/user/"${SERVICE_NAME}"
 
 systemctl --user daemon-reload
