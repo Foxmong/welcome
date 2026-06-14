@@ -24,7 +24,7 @@ Phase D  Cloudflare Tunnel template + 가이드
 ✅ 맥미니 VM autostart launchd plist
 ✅ docker-compose 템플릿 (whoami, NPM, cloudflared)
 ✅ 앱 서버 / Cloudflare Tunnel 가이드
-✅ 실제 실행 완료 → [2026-06-14-ops-stabilization.md](./2026-06-14-ops-stabilization.md)
+✅ 실제 실행 완료 → [2026-06-14-macmini-server-setup.md](./2026-06-14-macmini-server-setup.md) §2-10~2-13
 ```
 
 ---
@@ -106,8 +106,8 @@ Zero Trust Public Hostname 예: `status.yourdomain.com` → `192.168.0.113:3001`
 
 ```text
 [핵심 구축]     ████████████████████  100%
-[운영 안정화]   ██████████████████░░  ~90%  ← SSHFS 자동화 스크립트 준비
-[앱 서버 확장]  ████░░░░░░░░░░░░░░░░  ~20%  ← 템플릿·가이드 준비, 배포 대기
+[운영 안정화]   ████████████████████  100%  ← 2026-06-14 세션 완료
+[앱 서버 확장]  ████░░░░░░░░░░░░░░░░  ~20%
 ```
 
 ---

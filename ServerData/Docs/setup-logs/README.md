@@ -10,8 +10,7 @@
 |---|---|---|
 | [2026-06-11-macmini-server-setup.md](./2026-06-11-macmini-server-setup.md) | 2026-06-11 | 저장장치 구성, Tailscale, SSH, SMB, CentOS VM 설치까지 |
 | [2026-06-12-macmini-server-setup.md](./2026-06-12-macmini-server-setup.md) | 2026-06-12 | Guest Additions 실패→SSHFS, ServerData 마운트, ARM64 한계, 다음 단계 |
-| [2026-06-14-macmini-server-setup.md](./2026-06-14-macmini-server-setup.md) | 2026-06-14 | Docker, Uptime Kuma, restic+cron, 모니터 Down 이슈, 홈서버 로드맵 |
-| [2026-06-14-ops-stabilization.md](./2026-06-14-ops-stabilization.md) | 2026-06-14 | **운영 안정화 완료** (SSHFS/Kuma/autostart/restic) |
+| [2026-06-14-macmini-server-setup.md](./2026-06-14-macmini-server-setup.md) | 2026-06-14 | Docker, Kuma, restic, **운영 안정화 완료** |
 | [2026-06-15-macmini-server-setup.md](./2026-06-15-macmini-server-setup.md) | 2026-06-15 | SSHFS 자동화 스크립트, 앱/Tunnel 가이드 |
 
 ## 관련 가이드

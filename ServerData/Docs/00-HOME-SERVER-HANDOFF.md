@@ -336,7 +336,7 @@ sftp kimi@100.127.117.23
 
 ### 운영 안정화 — ✅ 완료 (2026-06-14)
 
-- [x] SSHFS automount + 재부팅 검증 → [2026-06-14-ops-stabilization.md](./setup-logs/2026-06-14-ops-stabilization.md)
+- [x] SSHFS automount + 재부팅 검증 → [2026-06-14-macmini-server-setup.md](./setup-logs/2026-06-14-macmini-server-setup.md) §2-11
 - [x] VM autostart `install-vm-autostart.sh`
 - [x] restic 수동 백업 + backup.log
 - [ ] macOS cron → launchd (선택)

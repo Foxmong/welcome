@@ -20,6 +20,8 @@ Phase 6  외부 접속·모니터링 확인
 
 ### 오늘 실제 달성
 
+**오전·오후 (핵심 구축)**
+
 ```text
 ✅ SSHFS ServerData 마운트 재확인 (/mnt/serverdata)
 ✅ Docker CE 설치 (CentOS VM)
@@ -30,6 +32,16 @@ Phase 6  외부 접속·모니터링 확인
 ✅ CentOS VM SSH 모니터 Up 전환 (172.17.0.1:22)
 ✅ restic 복구 테스트
 ⏭ Uptime Kuma 알림 — 미사용 (대시보드만)
+```
+
+**저녁 (운영 안정화)**
+
+```text
+✅ Uptime Kuma ~/docker/uptime-kuma 이전 (SSHFS bind 이슈 해결, 기존 data 유지)
+✅ SSHFS 부팅 자동 마운트 (ssh-copy-id + serverdata-sshfs.service)
+✅ VM 재부팅 검증 — SSHFS automount OK
+✅ 맥 VM autostart (launchd com.kimi.centos-vm-autostart)
+✅ restic backup.log + 스냅샷 05583a46 (5.035 GiB)
 ```
 
 ---
@@ -402,6 +414,94 @@ Email/Telegram 등 **알림은 사용하지 않음**. 모니터 상태는 Uptime
 
 ---
 
+### 2-10. Uptime Kuma ~/docker 이전 (저녁)
+
+`/mnt/serverdata/appdata/uptime-kuma` 에서 `docker compose up -d` 실패:
+
+```text
+error while creating mount source path '.../data':
+mkdir /mnt/serverdata: file exists
+```
+
+**원인:** Docker bind mount는 SSHFS(FUSE)에서 불가 (§3-1과 동일).
+
+**해결** — 기존 data 삭제 없이 VM 로컬로 이전:
+
+```bash
+mkdir -p ~/docker/uptime-kuma/data
+cp -a /mnt/serverdata/appdata/uptime-kuma/data/. ~/docker/uptime-kuma/data/
+cd ~/docker/uptime-kuma && docker compose up -d
+```
+
+| 구분 | 경로 |
+|---|---|
+| 운영 | `~/docker/uptime-kuma/` |
+| 원본 보관 | `/mnt/serverdata/appdata/uptime-kuma/` |
+
+접속·모니터 5종·계정 유지. `curl -I http://127.0.0.1:3001` → `HTTP/1.1 302`.
+
+---
+
+### 2-11. SSHFS 부팅 자동 마운트 (저녁)
+
+스크립트: `Docs/scripts/centos/install-sshfs-automount.sh` (GitHub curl → scp)
+
+```bash
+# 맥
+scp .../install-sshfs-automount.sh .../serverdata-sshfs.service foxmong@192.168.0.113:~/
+
+# VM
+sed -i 's/\r$//' ~/install-sshfs-automount.sh ~/serverdata-sshfs.service
+ssh-copy-id -i ~/.ssh/id_ed25519_serverdata.pub kimi@192.168.0.100
+~/install-sshfs-automount.sh
+```
+
+**이슈:** CentOS Stream 10 → `fusermount` 없음, **`fusermount3`** 사용. systemd unit:
+
+```ini
+ExecStop=/usr/bin/fusermount3 -u /mnt/serverdata
+```
+
+```bash
+systemctl --user enable --now serverdata-sshfs.service
+sudo loginctl enable-linger foxmong
+```
+
+**재부팅 검증 (18:09 KST):** `active (running)`, `/mnt/serverdata` 자동 마운트. 부팅 직후 1회 실패 → 13초 후 재시작 성공 (`Restart=on-failure`).
+
+---
+
+### 2-12. 맥 VM autostart (저녁)
+
+```bash
+curl -fsSL .../install-vm-autostart.sh -o ~/install-vm-autostart.sh
+sed -i '' 's/\r$//' ~/install-vm-autostart.sh
+~/install-vm-autostart.sh
+```
+
+- plist: `~/Library/LaunchAgents/com.kimi.centos-vm-autostart.plist`
+- VBoxManage: `/usr/local/bin/VBoxManage`
+- `VBoxManage list runningvms` → `centos-server` running
+- VM 이미 켜진 상태 `startvm` → launchd exit 78 (무시)
+
+---
+
+### 2-13. restic backup.log 확인 (저녁)
+
+```bash
+mkdir -p /Volumes/ServerBackup/logs
+~/scripts/backup.sh >> /Volumes/ServerBackup/logs/backup.log 2>&1
+```
+
+| 스냅샷 ID | 시간 | 크기 |
+|---|---|---|
+| 894c5363 | 16:04 | 6.495 KiB (초기) |
+| 05583a46 | 18:13 | **5.035 GiB** (실데이터) |
+
+cron `0 3 * * *` 등록 유지. **6/15 03:00 이후** `tail backup.log`로 자동 실행 추가 확인.
+
+---
+
 ## 3. 중요 결정 사항 및 교훈
 
 ### 3-1. Docker + SSHFS 호환 불가
@@ -447,6 +547,8 @@ restic 저장소 비밀번호는 **복구 시 필수**. 별도 안전한 곳에 
 | Tailscale IP | 100.127.117.23 |
 | SSH / SMB | ✅ |
 | restic cron | ✅ 매일 03:00 |
+| backup.log | ✅ 수동 실행 검증 (05583a46) |
+| VM autostart | ✅ launchd com.kimi.centos-vm-autostart |
 | 백업 저장소 | /Volumes/ServerBackup/restic-repo |
 
 ### CentOS VM
@@ -458,8 +560,9 @@ restic 저장소 비밀번호는 **복구 시 필수**. 별도 안전한 곳에 
 | SSH / SFTP | ✅ |
 | SSHFS | ✅ /mnt/serverdata |
 | Docker | ✅ |
-| Uptime Kuma | ✅ ~/docker/uptime-kuma :3001 |
+| Uptime Kuma | ✅ ~/docker/uptime-kuma :3001 (ServerData data 이전) |
 | Uptime Kuma 알림 | ⏭ 미사용 |
+| SSHFS automount | ✅ serverdata-sshfs.service + linger |
 | 모니터 5종 | ✅ 전부 Up (CentOS VM SSH → 172.17.0.1:22) |
 | restic 복구 테스트 | ✅ /tmp/restic-restore-test 검증 |
 
@@ -486,32 +589,36 @@ http://100.69.135.104:3001
 | 6 | resic-repo 경로 오류 | 오타 | restic-repo 로 통일 |
 | 7 | crontab -e vi 실패 | vi 종료 오류 | echo \| crontab - |
 | 8 | CentOS VM SSH 모니터 Down | Docker内 127.0.0.1 ≠ 호스트 | **172.17.0.1:22** 로 수정 → Up ✅ |
+| 9 | Docker on `/mnt/serverdata/appdata` | SSHFS + bind 불가 | `~/docker/uptime-kuma/data` 이전 |
+| 10 | `bad interpreter: /bin/bash^M` | curl 스크립트 CRLF | Mac `sed -i ''` / Linux `sed -i` |
+| 11 | `fusermount` 없음 | CentOS Stream 10 | `fusermount3` |
+| 12 | SSHFS 부팅 1회 실패 | 맥 SSH 준비 전 | systemd Restart → 13초 후 성공 |
 
 ---
 
 ## 6. 미완료 / 다음 작업
 
-### 우선 (운영)
+### 확인 (한 번만)
 
 ```text
-[ ] cron 백업 로그 확인 (tail backup.log) — 다음날 03:00 이후
+[ ] cron 자동 백업 — 6/15 03:00 이후 tail backup.log
 ```
 
-### 안정화 (선택)
+### 앱 서버 확장 (다음)
 
 ```text
-[ ] VM SSHFS 부팅 시 자동 마운트 + ssh-copy-id
-[ ] VM 자동 시작 (VBoxManage + launchd)
-[ ] macOS cron → launchd 전환
-[ ] SMB fileshare 전용 계정
-```
-
-### 확장 (예정)
-
-```text
-[ ] 앱 서버 Docker Compose (~/docker/myapp)
-[ ] Cloudflare Tunnel
+[ ] whoami ~/docker/myapp
+[ ] Cloudflare Tunnel + 도메인
 [ ] Gitea / Nextcloud 등
+[ ] (선택) NPM, SMB fileshare 계정, cron→launchd
+```
+
+### 운영 안정화 — ✅ 6/14 완료
+
+```text
+[x] VM SSHFS automount + 재부팅 검증
+[x] 맥 VM autostart launchd
+[x] restic backup.log + 스냅샷 05583a46
 ```
 
 ---
@@ -521,9 +628,9 @@ http://100.69.135.104:3001
 ### CentOS VM
 
 ```bash
-# SSHFS
-sshfs kimi@192.168.0.100:/Volumes/ServerData /mnt/serverdata
-ls /mnt/serverdata
+# SSHFS (자동 — 재부팅 후에도 유지)
+systemctl --user status serverdata-sshfs.service
+mount | grep serverdata
 
 # Docker / Uptime Kuma
 cd ~/docker/uptime-kuma
@@ -531,19 +638,18 @@ docker compose up -d
 docker ps
 curl -I http://127.0.0.1:3001
 
-# Uptime Kuma — CentOS VM SSH 모니터
-# Hostname: 172.17.0.1  Port: 22
-docker exec uptime-kuma sh -c "nc -zv 172.17.0.1 22"
+# Uptime Kuma — CentOS VM SSH 모니터: 172.17.0.1:22
 ```
 
 ### 맥미니
 
 ```bash
+launchctl list | grep centos
+VBoxManage list runningvms
 ~/scripts/backup.sh
-restic -r /Volumes/ServerBackup/restic-repo snapshots
-restic -r /Volumes/ServerBackup/restic-repo restore latest --target /tmp/restic-restore-test
-crontab -l
 tail /Volumes/ServerBackup/logs/backup.log
+restic -r /Volumes/ServerBackup/restic-repo snapshots
+crontab -l
 ```
 
 ### 노트북 (외부)
@@ -562,11 +668,11 @@ sftp kimi@100.127.117.23
 ```text
 [1일차 06-11] ServerData/Backup, Tailscale, SSH, SMB, CentOS VM 설치
 [2일차 06-12] SSHFS, Guest Additions ARM 한계, SFTP 가이드
-[3일차 06-14] Docker, Uptime Kuma, restic+cron, 모니터 Up, 복구테스트
+[3일차 06-14] Docker, Kuma, restic, 모니터 Up + 저녁 운영 안정화 완료
 
 [핵심 구축]     ████████████████████  100%
-[운영 안정화]   ████████████████░░░░  ~80%
-[앱 서버 확장]  ░░░░░░░░░░░░░░░░░░░░   0%
+[운영 안정화]   ████████████████████  100%
+[앱 서버 확장]  ████░░░░░░░░░░░░░░░░  ~20%
 ```
 
 ---
@@ -583,4 +689,4 @@ sftp kimi@100.127.117.23
 
 ---
 
-*이 문서는 2026-06-14 맥미니 홈서버 구축 3일차 작업 내용을 정리한 것입니다.*
+*이 문서는 2026-06-14 맥미니 홈서버 3일차 작업(핵심 구축 + 운영 안정화)을 정리한 것입니다.*

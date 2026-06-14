@@ -7,7 +7,7 @@
 
 ## 체크리스트
 
-> **2026-06-14 완료** — 상세: [setup-logs/2026-06-14-ops-stabilization.md](../setup-logs/2026-06-14-ops-stabilization.md)
+> **2026-06-14 완료** — 상세: [setup-logs/2026-06-14-macmini-server-setup.md](../setup-logs/2026-06-14-macmini-server-setup.md) §2-10~2-13
 
 ```text
 [x] 1. VM — SSHFS 자동 마운트 (install-sshfs-automount.sh)
