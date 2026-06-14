@@ -378,54 +378,72 @@ rm -rf /tmp/restic-restore-test
 
 **완료 기준:** Projects/Shared/AppData/scripts 경로가 `/tmp/restic-restore-test` 아래에 보임.
 
-**비밀번호:** `backup.sh`와 동일 (`RESTIC_PASSWORD` 또는 수동 입력).
+**실행 결과 (2026-06-14):**
+
+```text
+restore latest → /tmp/restic-restore-test
+Summary: Restored 13 files/dirs (6.495 KiB)
+스냅샷: b1d6713c (latest)
+```
+
+**참고:** CLI에서 비밀번호 1회 오입력 가능 → `backup.sh`의 `RESTIC_PASSWORD`와 동일해야 함.  
+수동 실행 시:
+
+```bash
+export RESTIC_PASSWORD="(backup.sh와 동일)"
+restic -r /Volumes/ServerBackup/restic-repo snapshots
+```
 
 ---
 
-### 2-9. Uptime Kuma 알림 설정 ✅
+### 2-9. Uptime Kuma 알림 설정 ✅ (Email SMTP)
 
-**접속:** `http://100.69.135.104:3001`
+**접속:** `http://100.69.135.104:3001`  
+**선택:** Email (SMTP) — Telegram 대신 이메일 알림 사용.
 
-#### Telegram 알림 (추천)
+#### Uptime Kuma Email (SMTP) 설정
 
-**1) Telegram Bot 생성**
+**Settings → Notifications → Setup Notification → Email (SMTP)**
 
-- Telegram에서 `@BotFather` 검색
-- `/newbot` → 이름·username 설정
-- **Bot Token** 복사 (예: `123456:ABC-DEF...`)
+| 항목 | 설명 | 예시 (Gmail) |
+|---|---|---|
+| 이름 | 알림 이름 | `내 Email 알림` |
+| 호스트네임 | SMTP 서버 | `smtp.gmail.com` |
+| 포트 | SMTP 포트 | `587` |
+| 보안 | 암호화 | **STARTTLS (587)** |
+| TLS 에러 무시 | ❌ 체크 안 함 | |
+| Username | SMTP 로그인 | `your@gmail.com` |
+| Password | SMTP 비밀번호 | **앱 비밀번호** (일반 비밀번호 X) |
+| 보내는 이메일 | From | `"Uptime Kuma" <your@gmail.com>` |
+| 받는 이메일 | To | `your@gmail.com` |
 
-**2) Chat ID 확인**
+**Test** → Save → 각 모니터 **Notification**에 연결.
 
-- 봇과 대화 시작 (`/start`)
-- 브라우저:
-
-```text
-https://api.telegram.org/bot<TOKEN>/getUpdates
-```
-
-→ `"chat":{"id":123456789}` 값 확인
-
-**3) Uptime Kuma 등록**
-
-```text
-Settings → Notifications → Setup Notification
-→ Telegram
-→ Bot Token, Chat ID 입력
-→ Test → Save
-```
-
-**4) 모니터에 알림 연결**
-
-각 모니터 Edit → **Notification** → Telegram 체크 → Save
-
-**Down 시** Telegram으로 알림 수신.
-
-#### Discord (대안)
+#### Gmail 앱 비밀번호 (Gmail 사용 시)
 
 ```text
-Discord 서버 → 채널 설정 → 연동 → 웹후크 → URL 복사
-Uptime Kuma → Discord → Webhook URL → Test
+Google 계정 → 보안 → 2단계 인증 ON
+→ 앱 비밀번호 생성 → 16자리 비밀번호
+→ Uptime Kuma Password란에 입력
 ```
+
+#### Naver 메일 (참고)
+
+| 항목 | 값 |
+|---|---|
+| 호스트 | `smtp.naver.com` |
+| 포트 | `587` |
+| 보안 | STARTTLS |
+| Username | `naver_id` (전체 이메일) |
+| Password | 네이버 비밀번호 (2단계 시 앱 비밀번호) |
+
+#### Outlook / Microsoft 365 (참고)
+
+| 항목 | 값 |
+|---|---|
+| 호스트 | `smtp.office365.com` |
+| 포트 | `587` |
+| 보안 | STARTTLS |
 
 #### 알림 연결 대상 (권장)
 
@@ -436,6 +454,8 @@ Uptime Kuma → Discord → Webhook URL → Test
 | CentOS VM SSH | ✅ |
 | CentOS VM Tailscale | ✅ |
 | Uptime Kuma Self | 선택 |
+
+**Down 시** 설정한 **받는 이메일**로 알림 수신.
 
 ---
 
@@ -496,7 +516,7 @@ restic 저장소 비밀번호는 **복구 시 필수**. 별도 안전한 곳에 
 | SSHFS | ✅ /mnt/serverdata |
 | Docker | ✅ |
 | Uptime Kuma | ✅ ~/docker/uptime-kuma :3001 |
-| Uptime Kuma 알림 | ✅ Telegram (또는 Discord) |
+| Uptime Kuma 알림 | ✅ Email (SMTP) |
 | 모니터 5종 | ✅ 전부 Up (CentOS VM SSH → 172.17.0.1:22) |
 | restic 복구 테스트 | ✅ /tmp/restic-restore-test 검증 |
 
@@ -532,7 +552,7 @@ http://100.69.135.104:3001
 
 ```text
 [ ] cron 백업 로그 확인 (tail backup.log) — 다음날 03:00 이후
-[ ] Telegram Down 알림 실제 수신 테스트 (모니터 Stop → 알림 확인)
+[ ] Email Down 알림 실제 수신 테스트 (모니터 Pause → 메일 확인)
 ```
 
 ### 안정화 (선택)
