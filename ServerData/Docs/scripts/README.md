@@ -23,7 +23,7 @@
 | 디렉터리 | 용도 |
 |---|---|
 | [docker/uptime-kuma/](./docker/uptime-kuma/) | Uptime Kuma (참고용, 이미 운영 중) |
-| [docker/myapp/](./docker/myapp/) | whoami 테스트 앱 |
+| [docker/gitea/](./docker/gitea/) | Gitea Git 서버 |
 | [docker/nginx-proxy-manager/](./docker/nginx-proxy-manager/) | 리버스 프록시 |
 | [docker/cloudflared/](./docker/cloudflared/) | Cloudflare Tunnel |
 

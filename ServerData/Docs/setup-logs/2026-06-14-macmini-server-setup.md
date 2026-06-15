@@ -502,6 +502,24 @@ cron `0 3 * * *` 등록 유지. **6/15 03:00 이후** `tail backup.log`로 자�
 
 ---
 
+### 2-14. Cloudflare Tunnel + foxmong.cc (추가 세션)
+
+**도메인:** `foxmong.cc` (Cloudflare Registrar, $8/yr)
+
+| 항목 | 결과 |
+|---|---|
+| cloudflared `~/docker/cloudflared` | ✅ Healthy |
+| SSL foxmong.cc | ✅ Full |
+| Published route `whoami.foxmong.cc` | ✅ → `http://192.168.0.113:8080` |
+| DNS CNAME `whoami` | ✅ `*.cfargotunnel.com` |
+| 공개 접속 | ✅ `https://whoami.foxmong.cc` |
+
+**UI 주의:** **Hostname routes** (WARP 사설망) ≠ **Published application routes** (공개 HTTPS).
+
+**다음 (진행 예정):** `status.foxmong.cc` + Access, Kuma HTTPS 모니터, 토큰 rotate, Gitea — [tunnel-phase2-status-gitea.md](../guides/tunnel-phase2-status-gitea.md)
+
+---
+
 ## 3. 중요 결정 사항 및 교훈
 
 ### 3-1. Docker + SSHFS 호환 불가

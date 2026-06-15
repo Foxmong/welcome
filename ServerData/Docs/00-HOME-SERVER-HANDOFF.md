@@ -23,7 +23,7 @@ CentOS VM          → Linux 실습, Docker, Uptime Kuma
 
 **핵심 구축:** ✅ 완료 (~100%)  
 **운영 안정화:** ✅ 완료 (100%) — SSHFS automount, VM autostart, restic 확인  
-**앱 서버 확장:** 🔧 ~20% (whoami/NPM/cloudflared 템플릿·가이드 준비, VM 배포 대기)
+**앱 서버 확장:** 🔧 ~50% (whoami+Tunnel ✅, status/Gitea 진행 중)
 
 ---
 
@@ -355,8 +355,7 @@ sftp kimi@100.127.117.23
 | **00-HOME-SERVER-HANDOFF.md** | **← 이 파일 (새 세션 시작점)** |
 | setup-logs/2026-06-11-macmini-server-setup.md | 1일차: 디스크, Tailscale, VM 설치 |
 | setup-logs/2026-06-12-macmini-server-setup.md | 2일차: SSHFS, Guest Additions ARM |
-| setup-logs/2026-06-14-macmini-server-setup.md | 3일차: Docker, Kuma, restic, **운영 안정화** |
-| setup-logs/2026-06-15-macmini-server-setup.md | 4일차: SSHFS 자동화, 앱/Tunnel 템플릿 |
+| setup-logs/2026-06-14-macmini-server-setup.md | 3일차: Docker, Kuma, restic, 운영 안정화 |
 | guides/tailscale-sftp-file-transfer.md | SFTP get/put 가이드 |
 | guides/ops-stabilization.md | **운영 안정화 실행 순서** |
 | guides/vm-sshfs-automount.md | SSHFS 부팅 자동 마운트 |
