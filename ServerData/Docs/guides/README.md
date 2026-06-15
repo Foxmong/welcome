@@ -9,6 +9,7 @@
 | [vm-sshfs-automount.md](./vm-sshfs-automount.md) | VM SSHFS 부팅 자동 마운트 (ssh-copy-id + systemd) |
 | [app-server-docker-compose.md](./app-server-docker-compose.md) | 앱 서버 (whoami, NPM) |
 | [cloudflare-tunnel.md](./cloudflare-tunnel.md) | Cloudflare Tunnel + 도메인 HTTPS |
+| [tunnel-phase2-status-gitea.md](./tunnel-phase2-status-gitea.md) | status+Access, Gitea, 토큰 rotate |
 
 ## 맥미니 경로
 
