@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>9. 배포/운영 세팅</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="page">
+      <nav class="nav">
+        <a href="./index.html">목차</a>
+        <a href="./08-ai-integration.html">이전: AI 기능</a>
+        <a href="./10-qa-testing.html">다음: QA/테스트</a>
+      </nav>
+
+      <section class="hero">
+        <span class="badge">09 Deployment</span>
+        <h1>배포/운영 세팅 예시</h1>
+        <p>개발된 MVP를 실제 사용자가 접속할 수 있도록 도메인, 서버, 보안, 모니터링 환경을 구성합니다.</p>
+      </section>
+
+      <section class="section">
+        <h2>배포 구성 예시</h2>
+        <table>
+          <tr><th>항목</th><th>예시</th></tr>
+          <tr><td>도메인</td><td>meeting-ai.example.com 연결</td></tr>
+          <tr><td>프론트엔드</td><td>Vercel, Netlify, Cloudflare Pages 등</td></tr>
+          <tr><td>백엔드</td><td>AWS, GCP, Azure, Render, Fly.io 등</td></tr>
+          <tr><td>DB</td><td>Managed PostgreSQL</td></tr>
+          <tr><td>파일 저장소</td><td>S3 호환 오브젝트 스토리지</td></tr>
+          <tr><td>SSL</td><td>HTTPS 인증서 자동 적용</td></tr>
+        </table>
+      </section>
+
+      <section class="section">
+        <h2>CI/CD 예시</h2>
+        <pre><code>개발자가 main 브랜치에 병합
+ ↓
+자동 테스트 실행
+ ↓
+빌드
+ ↓
+스테이징 배포
+ ↓
+간단한 smoke test
+ ↓
+프로덕션 배포</code></pre>
+      </section>
+
+      <section class="section">
+        <h2>로그/모니터링</h2>
+        <table>
+          <tr><th>구분</th><th>추적 내용</th></tr>
+          <tr><td>애플리케이션 로그</td><td>로그인 실패, 업로드 실패, AI 처리 오류</td></tr>
+          <tr><td>성능 모니터링</td><td>API 응답 시간, 작업 큐 대기 시간</td></tr>
+          <tr><td>오류 추적</td><td>프론트엔드/백엔드 예외 발생 알림</td></tr>
+          <tr><td>사용량 모니터링</td><td>API 호출량, 파일 저장 용량, AI 비용</td></tr>
+        </table>
+      </section>
+
+      <section class="section">
+        <h2>백업과 기본 보안</h2>
+        <ul>
+          <li>DB 자동 백업 설정</li>
+          <li>업로드 파일 보관 기간 정책 설정</li>
+          <li>관리자 페이지 접근 제한</li>
+          <li>환경변수와 API 키는 코드에 저장하지 않음</li>
+          <li>파일 업로드 확장자와 용량 제한</li>
+          <li>사용자별 데이터 접근 권한 검증</li>
+        </ul>
+      </section>
+
+      <section class="section">
+        <h2>클라이언트 전달 산출물</h2>
+        <ul>
+          <li>배포 URL</li>
+          <li>관리자 접속 URL</li>
+          <li>도메인/DNS 설정 내역</li>
+          <li>서버/DB/스토리지 계정 인수인계</li>
+          <li>환경변수 목록</li>
+          <li>장애 발생 시 확인해야 할 로그 위치</li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>

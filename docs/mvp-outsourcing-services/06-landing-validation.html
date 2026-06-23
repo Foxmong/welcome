@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>6. 랜딩페이지/사전검증</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="page">
+      <nav class="nav">
+        <a href="./index.html">목차</a>
+        <a href="./05-no-code-low-code.html">이전: 노코드/로우코드</a>
+        <a href="./07-payment-subscription.html">다음: 결제/구독</a>
+      </nav>
+
+      <section class="hero">
+        <span class="badge">06 Validation</span>
+        <h1>랜딩페이지/사전검증 예시</h1>
+        <p>제품 개발 전에 고객이 문제를 실제로 느끼는지, 신청 또는 결제 의향이 있는지 확인합니다.</p>
+      </section>
+
+      <section class="section">
+        <h2>랜딩페이지 구성 예시</h2>
+        <table>
+          <tr><th>섹션</th><th>내용 예시</th></tr>
+          <tr><td>Hero</td><td>“회의록 작성, 이제 녹음 파일만 올리세요”</td></tr>
+          <tr><td>문제 제기</td><td>회의 후 정리 시간, 누락되는 액션아이템, 공유 지연</td></tr>
+          <tr><td>해결 방식</td><td>음성 업로드 → AI 요약 → 액션아이템 자동 정리</td></tr>
+          <tr><td>사용 예시</td><td>PM 회의, 영업 미팅, 고객 인터뷰</td></tr>
+          <tr><td>가격 가설</td><td>베타 무료, 이후 월 구독형 예정</td></tr>
+          <tr><td>CTA</td><td>“베타 신청하기”, “데모 요청하기”</td></tr>
+        </table>
+      </section>
+
+      <section class="section">
+        <h2>신청/대기자 모집 폼</h2>
+        <pre><code>필수 입력:
+- 이름
+- 회사명
+- 이메일
+- 회의 빈도
+- 회의록 작성에 쓰는 시간
+- 원하는 기능
+
+선택 입력:
+- 현재 사용하는 도구
+- 지불 의향 가격대
+- 데모 미팅 희망 여부</code></pre>
+      </section>
+
+      <section class="section">
+        <h2>광고/분석 연동</h2>
+        <table>
+          <tr><th>도구</th><th>추적 예시</th></tr>
+          <tr><td>GA4</td><td>방문자, CTA 클릭, 폼 제출, 페이지 체류 시간</td></tr>
+          <tr><td>Meta Pixel</td><td>광고 유입과 신청 전환 추적</td></tr>
+          <tr><td>Google Ads</td><td>검색광고 키워드별 전환율 확인</td></tr>
+          <tr><td>Hotjar/Clarity</td><td>스크롤, 클릭 위치, 이탈 지점 확인</td></tr>
+        </table>
+      </section>
+
+      <section class="section">
+        <h2>A/B 테스트 예시</h2>
+        <table>
+          <tr><th>테스트 항목</th><th>A안</th><th>B안</th></tr>
+          <tr><td>메인 문구</td><td>“회의록 자동 작성”</td><td>“회의 후 정리 시간을 80% 줄이세요”</td></tr>
+          <tr><td>CTA</td><td>“베타 신청하기”</td><td>“무료 데모 받기”</td></tr>
+          <tr><td>가격 표시</td><td>가격 미표기</td><td>월 29,000원 예정 표시</td></tr>
+          <tr><td>타깃 문구</td><td>스타트업용</td><td>영업팀용</td></tr>
+        </table>
+      </section>
+
+      <section class="section">
+        <h2>검증 지표</h2>
+        <ul>
+          <li>방문자 대비 신청 전환율</li>
+          <li>광고 클릭당 비용과 신청당 비용</li>
+          <li>데모 요청 비율</li>
+          <li>가격 질문 또는 구매 의향 응답 비율</li>
+          <li>가장 많이 선택된 사용 사례</li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>
