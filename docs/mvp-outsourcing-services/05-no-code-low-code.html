@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>5. 노코드/로우코드 MVP</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="page">
+      <nav class="nav">
+        <a href="./index.html">목차</a>
+        <a href="./04-backend-api.html">이전: 백엔드/API</a>
+        <a href="./06-landing-validation.html">다음: 사전검증</a>
+      </nav>
+
+      <section class="hero">
+        <span class="badge">05 No-code/Low-code</span>
+        <h1>노코드/로우코드 MVP 예시</h1>
+        <p>완성도 높은 커스텀 개발 전에, 빠르게 시장 반응을 확인하기 위한 검증용 제품을 만듭니다.</p>
+      </section>
+
+      <section class="section">
+        <h2>도구별 활용 예시</h2>
+        <table>
+          <tr><th>도구</th><th>AI 회의록 MVP에서의 활용</th><th>주의점</th></tr>
+          <tr><td>Bubble</td><td>회원가입, 업로드, 회의록 목록, 간단한 관리자 화면</td><td>복잡한 파일 처리와 성능 최적화에 한계</td></tr>
+          <tr><td>Webflow</td><td>랜딩페이지, 가격표, 고객 사례 페이지</td><td>로그인 기반 앱 기능은 별도 연동 필요</td></tr>
+          <tr><td>Softr</td><td>Airtable 기반 회의록 목록/회원 포털</td><td>복잡한 권한과 커스텀 UI 제한</td></tr>
+          <tr><td>Airtable</td><td>사용자, 회의록, 대기자 명단 데이터베이스</td><td>대규모 데이터와 민감 정보 저장에는 주의</td></tr>
+          <tr><td>Zapier/Make</td><td>업로드 완료 후 AI API 호출, 이메일 발송 자동화</td><td>자동화 비용과 실패 처리 설계 필요</td></tr>
+          <tr><td>Retool</td><td>운영자용 관리자 페이지</td><td>고객용 서비스 UI로는 부적합할 수 있음</td></tr>
+          <tr><td>FlutterFlow</td><td>간단한 모바일 앱 프로토타입</td><td>고급 네이티브 기능은 추가 개발 필요</td></tr>
+        </table>
+      </section>
+
+      <section class="section">
+        <h2>빠른 검증형 구성 예시</h2>
+        <pre><code>Webflow: 랜딩페이지
+Airtable: 대기자/사용자/회의록 데이터 저장
+Make: 파일 업로드 후 AI 처리 자동화
+OpenAI API: 회의록 요약
+Softr: 로그인 후 회의록 결과 확인 페이지
+Retool: 내부 관리자 페이지</code></pre>
+      </section>
+
+      <section class="section">
+        <h2>장단점</h2>
+        <table>
+          <tr><th>장점</th><th>단점</th></tr>
+          <tr><td>개발 전 시장 반응을 빠르게 확인 가능</td><td>확장성과 커스터마이징에 한계</td></tr>
+          <tr><td>초기 비용을 낮출 수 있음</td><td>도구별 월 비용이 누적될 수 있음</td></tr>
+          <tr><td>기획 변경에 유연함</td><td>성능·보안·권한 제어가 제한될 수 있음</td></tr>
+          <tr><td>비개발자도 일부 운영 가능</td><td>정식 제품 전환 시 재개발이 필요할 수 있음</td></tr>
+        </table>
+      </section>
+
+      <section class="section">
+        <h2>클라이언트 제안 문구</h2>
+        <div class="callout">
+          고객 반응 검증이 우선이라면 노코드/로우코드로 1차 MVP를 구성할 수 있습니다.
+          다만 장기 운영, 대용량 파일 처리, 정교한 권한 관리가 필요해지는 시점에는 커스텀 개발로 전환하는 것을 전제로 설계합니다.
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

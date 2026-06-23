@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>8. AI 기능 연동</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="page">
+      <nav class="nav">
+        <a href="./index.html">목차</a>
+        <a href="./07-payment-subscription.html">이전: 결제/구독</a>
+        <a href="./09-deployment-operations.html">다음: 배포/운영</a>
+      </nav>
+
+      <section class="hero">
+        <span class="badge">08 AI Integration</span>
+        <h1>AI 기능 연동 예시</h1>
+        <p>AI API를 제품 기능으로 연결해 회의록 요약, 자동 분류, 검색, 챗봇 기능을 제공합니다.</p>
+      </section>
+
+      <section class="section">
+        <h2>AI 기능 범위</h2>
+        <table>
+          <tr><th>기능</th><th>AI 회의록 MVP 예시</th></tr>
+          <tr><td>ChatGPT/OpenAI API 연동</td><td>회의 원문을 요약하고 구조화된 JSON 결과 생성</td></tr>
+          <tr><td>문서 요약</td><td>긴 회의 내용을 5줄 요약, 결정사항, 리스크로 분리</td></tr>
+          <tr><td>자동 분류</td><td>회의 유형: 제품, 영업, 고객 인터뷰, 내부 운영</td></tr>
+          <tr><td>추천 기능</td><td>다음 회의 안건 또는 후속 작업 추천</td></tr>
+          <tr><td>챗봇</td><td>“지난 회의에서 결제 기능은 어떻게 결정됐어?” 질문에 답변</td></tr>
+          <tr><td>RAG/문서 검색</td><td>과거 회의록을 검색해 관련 근거와 함께 답변</td></tr>
+        </table>
+      </section>
+
+      <section class="section">
+        <h2>프롬프트 설계 예시</h2>
+        <pre><code>역할:
+당신은 회의록 작성 전문 어시스턴트입니다.
+
+입력:
+회의 원문 텍스트
+
+출력 형식:
+{
+  "summary": "회의 전체 요약",
+  "decisions": ["결정사항 1", "결정사항 2"],
+  "action_items": [
+    {
+      "task": "할 일",
+      "assignee": "담당자",
+      "due_date": "마감일 또는 null"
+    }
+  ],
+  "risks": ["리스크 1"],
+  "next_agenda": ["다음 회의 안건 1"]
+}
+
+규칙:
+- 원문에 없는 내용은 추측하지 않는다.
+- 담당자가 불명확하면 null로 표시한다.
+- 한국어로 간결하게 작성한다.</code></pre>
+      </section>
+
+      <section class="section">
+        <h2>RAG 검색 구조 예시</h2>
+        <pre><code>1. 회의록 원문과 요약을 문단 단위로 분리
+2. 각 문단을 임베딩으로 변환
+3. 벡터 DB에 저장
+4. 사용자가 질문 입력
+5. 관련 문단 검색
+6. 검색 결과를 근거로 AI 답변 생성
+7. 답변 아래에 참조 회의록 표시</code></pre>
+      </section>
+
+      <section class="section">
+        <h2>품질 관리 포인트</h2>
+        <ul>
+          <li>AI가 모르는 내용을 지어내지 않도록 출력 규칙 설정</li>
+          <li>긴 회의록은 분할 요약 후 최종 요약으로 합성</li>
+          <li>개인정보와 민감 정보가 포함될 수 있으므로 저장 정책 명확화</li>
+          <li>API 비용이 커질 수 있으므로 파일 길이와 사용량 제한 설정</li>
+          <li>결과가 틀릴 수 있음을 UI에서 안내하고 사용자가 수정 가능하게 설계</li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>2. UX/UI 디자인</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="page">
+      <nav class="nav">
+        <a href="./index.html">목차</a>
+        <a href="./01-planning-requirements.html">이전: 기획</a>
+        <a href="./03-mvp-development.html">다음: MVP 개발</a>
+      </nav>
+
+      <section class="hero">
+        <span class="badge">02 UX/UI</span>
+        <h1>UX/UI 디자인 예시</h1>
+        <p>사용자가 회의 녹음 파일을 업로드하고 결과를 확인하는 핵심 흐름을 화면으로 설계합니다.</p>
+      </section>
+
+      <section class="section">
+        <h2>화면 흐름 설계</h2>
+        <pre><code>랜딩페이지
+ ↓
+회원가입 / 로그인
+ ↓
+대시보드
+ ↓
+새 회의록 만들기
+ ↓
+녹음 파일 업로드
+ ↓
+처리 중 화면
+ ↓
+회의록 결과 화면
+ ↓
+수정 / 복사 / 다운로드
+ ↓
+회의록 목록에서 재조회</code></pre>
+      </section>
+
+      <section class="section">
+        <h2>와이어프레임 예시</h2>
+        <h3>대시보드</h3>
+        <pre><code>------------------------------------------------
+| 로고             회의록 목록   설정   프로필 |
+------------------------------------------------
+
+안녕하세요, 김PM님
+
+[ + 새 회의록 만들기 ]
+
+최근 회의록
+------------------------------------------------
+| 제목                  날짜        상태       |
+------------------------------------------------
+| 주간 제품 회의         06.23      완료       |
+| 영업 전략 회의         06.21      완료       |
+| 고객 인터뷰 회의       06.19      처리 실패 |
+------------------------------------------------</code></pre>
+
+        <h3>파일 업로드</h3>
+        <pre><code>새 회의록 만들기
+
+회의 제목
+[  6월 23일 제품 회의                         ]
+
+녹음 파일 업로드
+------------------------------------------------
+|       파일을 여기에 드래그하거나 클릭하세요    |
+|       지원 형식: mp3, m4a, wav               |
+|       최대 용량: 500MB                       |
+------------------------------------------------
+
+[ 취소 ]                         [ 회의록 생성 ]</code></pre>
+      </section>
+
+      <section class="section">
+        <h2>Figma 디자인 구성</h2>
+        <table>
+          <tr><th>화면명</th><th>설명</th></tr>
+          <tr><td>01_Landing</td><td>서비스 소개와 시작 버튼</td></tr>
+          <tr><td>02_SignUp</td><td>회원가입</td></tr>
+          <tr><td>03_Login</td><td>로그인</td></tr>
+          <tr><td>04_Dashboard</td><td>최근 회의록과 새 회의록 버튼</td></tr>
+          <tr><td>05_Meeting_Create</td><td>회의 제목 입력 및 파일 업로드</td></tr>
+          <tr><td>06_Upload_Progress</td><td>음성 변환 및 AI 요약 처리 상태</td></tr>
+          <tr><td>07_Meeting_Detail</td><td>요약, 결정사항, 액션아이템, 원문 확인</td></tr>
+          <tr><td>08_Meeting_Edit</td><td>회의록 수정</td></tr>
+        </table>
+      </section>
+
+      <section class="section">
+        <h2>디자인 시스템 기초</h2>
+        <table>
+          <tr><th>분류</th><th>컴포넌트</th></tr>
+          <tr><td>Buttons</td><td>Primary, Secondary, Danger, Icon Button</td></tr>
+          <tr><td>Inputs</td><td>Text Input, Password Input, Search Input, Textarea, File Upload Box</td></tr>
+          <tr><td>Navigation</td><td>Header, Sidebar, Breadcrumb</td></tr>
+          <tr><td>Cards</td><td>Meeting Card, Summary Card, Empty State Card</td></tr>
+          <tr><td>Feedback</td><td>Toast, Spinner, Progress Bar, Error Message</td></tr>
+        </table>
+        <p><strong>컬러 예시:</strong> Primary #2563EB, Background #F8FAFC, Text #0F172A, Error #DC2626</p>
+        <p><strong>폰트 예시:</strong> Pretendard 또는 Inter, 본문 14~16px, 제목 24~32px</p>
+      </section>
+
+      <section class="section">
+        <h2>반응형 화면 설계</h2>
+        <table>
+          <tr><th>화면</th><th>데스크톱</th><th>모바일</th></tr>
+          <tr><td>회의록 목록</td><td>테이블</td><td>카드 리스트</td></tr>
+          <tr><td>사이드바</td><td>고정 표시</td><td>햄버거 메뉴</td></tr>
+          <tr><td>업로드 박스</td><td>넓은 드래그 영역</td><td>탭해서 파일 선택</td></tr>
+          <tr><td>액션아이템</td><td>테이블</td><td>카드형 리스트</td></tr>
+        </table>
+      </section>
+
+      <section class="section">
+        <h2>클릭 가능한 프로토타입</h2>
+        <pre><code>랜딩페이지 [무료로 시작하기]
+ → 회원가입
+
+회원가입 [가입하기]
+ → 대시보드
+
+대시보드 [+ 새 회의록 만들기]
+ → 파일 업로드
+
+파일 업로드 [회의록 생성]
+ → 처리 중 화면
+
+처리 중 화면 자동 전환
+ → 회의록 결과 화면
+
+결과 화면 [복사하기]
+ → “복사되었습니다” 토스트 표시</code></pre>
+      </section>
+    </main>
+  </body>
+</html>
