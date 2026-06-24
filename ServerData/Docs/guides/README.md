@@ -10,6 +10,7 @@
 | [app-server-docker-compose.md](./app-server-docker-compose.md) | 앱 서버 (whoami, NPM) |
 | [cloudflare-tunnel.md](./cloudflare-tunnel.md) | Cloudflare Tunnel + 도메인 HTTPS |
 | [tunnel-phase2-status-gitea.md](./tunnel-phase2-status-gitea.md) | status+Access, Gitea, 토큰 rotate |
+| [blog-automation-openclaw-openrouter.md](./blog-automation-openclaw-openrouter.md) | 블로그 자동발행 0→100 (OpenClaw+OpenRouter) |
 
 ## 맥미니 경로
 
