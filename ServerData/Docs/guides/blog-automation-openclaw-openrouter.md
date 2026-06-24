@@ -44,6 +44,7 @@
 
 | 순서 | 작업 | 가이드 위치 |
 |---|---|---|
+| 0 | 구축 전 검토 | Phase 0 |
 | 1 | OpenClaw 설치 + OpenRouter + launchd | Phase 1 |
 | 2 | VM RAM 2GB, 스케줄 분리 | Phase 2 |
 | 3 | Tistory 2개 + 폴더·`blog.env` | Phase 3 |
@@ -53,6 +54,44 @@
 | 6 | 주식·핫딜 크롤 파이프라인 | Phase 6 |
 | 7 | launchd 스케줄 등록 | Phase 7 |
 | 8 | 0→100 체크리스트 따라 운영 | Phase 8 |
+
+---
+
+## Phase 0 — 구축 전 최종 검토 (2026-06-15)
+
+구축 들어가기 전 설계 점검 결과입니다.
+
+### 0-1. 보완 완료 항목
+
+| 항목 | 이전 | 보완 |
+|---|---|---|
+| Phase 5 제목 누락 | 5-1만 존재 | Phase 5 헤더 복구 |
+| AI 실패 알림 | 승인만 | Phase 4-B + `telegram-alert.sh` |
+| API 비용 통제 | 모델만 지정 | 일일 상한·캐시·2단계 라우팅 (Phase 5-C) |
+| 수동 작업 | 쿠키·launchd·승인 | 자동화 스크립트 (Phase 3-B) |
+| 핫딜 LLM 낭비 | 전체 본문 생성 | 템플릿 + flash 1문단 |
+| 중복 글 | 미정 | `content-dedup.sh` (LLM 전) |
+
+### 0-2. 구축 전 사용자 확인 (최소)
+
+| # | 작업 | 자동화 |
+|---|---|---|
+| 1 | Tistory 2개 **개설** (카카오) | ❌ 최초 1회만 |
+| 2 | OpenRouter·Telegram·API 키 | ✅ `setup-blog-wizard.sh` |
+| 3 | Tistory 쿠키 **최초 1회** export | ⚠️ 이후 자동 검사·알림 |
+| 4 | 애드센스·쿠팡 파트너스 **신청** | ❌ 심사 대기 (승인 후 스크립트 삽입) |
+| 5 | 스크립트·launchd 설치 | ✅ install 스크립트 2개 |
+| 6 | **승인 버튼** 클릭 | ✅ Telegram 인라인 (폴링 자동) |
+
+### 0-3. 리스크·완화
+
+| 리스크 | 완화 |
+|---|---|
+| Tistory 비공식 API 변경 | 쿠키 검사 05:30 + 발행 전 재검사 |
+| OpenRouter 비용 초과 | 일일 상한 + 22:00 리포트 |
+| 에펨 IP 차단 | delay 2s+, pause 플래그 |
+| 8GB 메모리 부족 | VM 2GB, LLM 시간 분산 |
+| 분석 품질 저하 | sonnet은 주식 본문만, 실적일·심층만 deep |
 
 ---
 
@@ -225,7 +264,49 @@ TELEGRAM_CHAT_ID=...
 # 에펨 (완전 자동 — 요청 간격 준수)
 FMKOREA_HOTDEAL_URL=https://...
 CRAWL_DELAY_SEC=2
+
+# LLM 비용 (blog.env.example 참고)
+STOCK_LLM_DAILY_MAX=3
+DEAL_LLM_DAILY_MAX=8
+CONTENT_DEDUP_DAYS=7
 ```
+
+---
+
+## Phase 3-B — 수동 작업 자동화 매트릭스
+
+| 작업 | 이전 | 지금 | 스크립트 |
+|---|---|---|---|
+| blog.env 작성 | 수동 vi | **마법사** | `setup-blog-wizard.sh` |
+| Telegram chat_id | 수동 조회 | **자동 조회** | wizard 내 getUpdates |
+| launchd 등록 | 수동 plist | **원클릭** | `install-blog-launchd.sh` |
+| 승인/거절 처리 | 터미널 명령 | **Telegram 버튼** | `telegram-callback-poller.sh` |
+| Tistory 쿠키 검사 | 발행 실패 후 | **매일 05:30** | `tistory-cookie-check.sh` |
+| LLM 일일 리포트 | 없음 | **22:00 Telegram** | `llm-budget.sh report` |
+| 중복 핫딜 필터 | 없음 | **크롤 직후** | `content-dedup.sh` |
+| 면책·제휴 문구 | 수동 | **템플릿 자동** | `deal-template.html` |
+| 실패 알림 | 없음 | **자동** | `telegram-alert.sh` |
+
+**여전히 직접 해야 하는 것 (중요·최소):**
+
+1. Tistory 블로그 2개 **최초 개설** (카카오 로그인)
+2. 쿠키 **최초 1회** 브라우저 export → `config/tistory-cookies.json`
+3. 애드센스·쿠팡 파트너스 **계정 신청** (심사)
+4. Telegram에서 **승인/거절 버튼** (내용 검토 — 품질 게이트)
+
+쿠키 최초 export 방법:
+
+```bash
+# Chrome 개발자도구 → Application → Cookies → tistory.com
+# TSSESSION 등을 JSON으로 저장
+# /Volumes/ServerData/Projects/blog/config/tistory-cookies.json
+{
+  "your-stock.tistory.com": "TSSESSION=...; _T_ANO=...",
+  "your-deal.tistory.com": "TSSESSION=...; ..."
+}
+```
+
+만료 시 Telegram 알림 → 브라우저에서 재로그인 → JSON 갱신 (월 1~2회 예상).
 
 ---
 
@@ -362,6 +443,8 @@ ALERT_RETRY_DELAY_SEC=30
 
 ---
 
+## Phase 5 — OpenClaw 에이전트 구성
+
 ### 5-1. 에이전트 4+1
 
 | 에이전트 | 역할 | 모델 |
@@ -403,6 +486,60 @@ ALERT_RETRY_DELAY_SEC=30
 ├── tistory-draft.sh
 ├── telegram-approval.sh
 └── tistory-publish.sh
+```
+
+### 5-3. API 비용 절약 (품질 유지)
+
+> **원칙:** LLM은 “글 쓰기”에만 쓰고, 필터·검증·중복은 **규칙/스크립트**로 처리.
+
+#### 비용 절약 파이프라인
+
+```text
+[주식]
+크롤(JSON) → flash 필터(후보 1개) → haiku 아웃라인(선택) → sonnet 본문(일 3회 상한)
+           → 규칙 숫자검증 → 임시저장 → 승인
+
+[핫딜]
+에펨 크롤 → dedup(무료) → 쿠팡 API 검증(무료) → 템플릿 HTML
+         → flash 소개 2문장만(캐시) → 임시저장 → 승인
+```
+
+#### 모델·상한 (기본값)
+
+| 단계 | 모델 | 일/주 상한 | 비고 |
+|---|---|---|---|
+| 필터·dedup | flash | stock 3 / deal 8 | 후보 선별만 |
+| 아웃라인 | haiku | 포함 | 짧은 JSON |
+| 주식 본문 | **sonnet** | **일 3** | 분석형 품질 핵심 |
+| 심층 분석 | sonnet | **주 2** | `STOCK_DEEP=1` 실적일만 |
+| 핫딜 소개 | flash | deal 상한 공유 | max 200 토큰 |
+| 발행 메타 | haiku | 거의 없음 | 스크립트 위주 |
+
+#### LLM 호출 전 무료 필터 (반드시)
+
+1. `content-dedup.sh` — 7일 내 유사 제목 skip
+2. `llm-budget.sh check` — 상한 초과 시 skip + 알림
+3. 쿠팡 가격 불일치 — LLM 호출 안 함
+4. 주말 주식 — orchestrator skip
+5. `LLM_CACHE_TTL_HOURS=24` — 동일 입력 재사용
+
+#### 예상 비용 (참고)
+
+| 시나리오 | 월 LLM 호출 | 대략 비용 |
+|---|---|---|
+| 보수적 (상한 준수) | 주식 ~60 + 핫딜 ~150 | **$5~15** |
+| 상한 없이 전량 sonnet | 500+ | $50+ |
+
+OpenRouter 대시보드 **Limits** + `llm-budget.sh report` 22:00 로 이중 관리.
+
+#### 스크립트
+
+```bash
+~/scripts/blog/openrouter-call.sh --task stock --pipeline stock \
+  --cache-key nvda-20260614 --system "..." --user "compact JSON only"
+
+~/scripts/blog/llm-budget.sh status
+~/scripts/blog/deal-template-render.sh --input raw/x.json --output drafts/x.html
 ```
 
 ---
@@ -474,14 +611,22 @@ cron 3h → retry crawl-fmkorea-deals.sh
 
 ---
 
-## Phase 7 — 스케줄 (launchd, cron 대신 권장)
+## Phase 7 — 스케줄 (launchd 자동 설치)
 
-맥미니 cron FDA 이슈 → **launchd** 사용.
+맥미니 cron FDA 이슈 → **launchd** + `install-blog-launchd.sh`.
 
-`~/Library/LaunchAgents/com.kimi.blog-stock.plist` — 평일 06:00  
-`~/Library/LaunchAgents/com.kimi.blog-deal.plist` — 3시간 간격 StartInterval
+| launchd | 주기 | 역할 |
+|---|---|---|
+| `com.kimi.blog-stock` | 매일 06:00 (주말은 스크립트 skip) | 주식 파이프라인 |
+| `com.kimi.blog-deal` | 3시간 | 핫딜 파이프라인 |
+| `com.kimi.blog-telegram-poller` | 60초 | 승인/거절 버튼 |
+| `com.kimi.blog-cookie-check` | 05:30 | Tistory 쿠키 검사 |
+| `com.kimi.blog-llm-report` | 22:00 | LLM 사용량 리포트 |
 
-또는 하나의 `blog-orchestrator.sh`에서 시간 분기.
+```bash
+~/scripts/blog/install-blog-launchd.sh
+launchctl list | grep com.kimi.blog
+```
 
 **restic 03:00과 겹치지 않게** 이미 분리됨.
 
@@ -491,10 +636,12 @@ cron 3h → retry crawl-fmkorea-deals.sh
 
 ### 0~20: 기반
 
+- [ ] Phase 0 검토 완료
+- [ ] `setup-blog-wizard.sh` → blog.env
+- [ ] `install-blog-scripts.sh` + `test-alert`
+- [ ] `install-blog-launchd.sh`
 - [ ] OpenClaw 설치 + `openclaw doctor` OK
-- [ ] OpenRouter 키 + 월 한도
-- [ ] Telegram 봇 + chat_id
-- [ ] `install-blog-scripts.sh` + `test-alert` 수신 확인
+- [ ] OpenRouter Limits 설정
 - [ ] VM RAM 2GB로 조정 (8GB 맥)
 - [ ] Tistory 2개 + 카테고리
 - [ ] 애드센스·쿠팡 파트너스 신청
@@ -526,8 +673,8 @@ cron 3h → retry crawl-fmkorea-deals.sh
 
 ### 90~100: 운영
 
-- [ ] Tistory 쿠키 갱신 루틴 (주 1회)
-- [ ] OpenRouter 월 비용 리뷰
+- [ ] Tistory 쿠키 최초 export + `tistory-cookie-check.sh` OK
+- [ ] OpenRouter Limits + `llm-budget.sh status` 확인
 - [ ] Uptime Kuma: 블로그 URL 모니터
 - [ ] Search Console 2개 등록
 - [ ] 잘 된 키워드 → watchlist 반영
@@ -611,6 +758,8 @@ source /Volumes/ServerData/Projects/blog/config/blog.env
 | 실패 알림 안 옴 | `ALERT_ENABLED=1`, `blog-orchestrator.sh test-alert` |
 | 알림 폭주 | `ALERT_COOLDOWN_SEC` 증가 (기본 3600) |
 | 파이프라인 멈춤 | `config/pause-*.flag` 삭제 후 재실행 |
+| LLM 상한 도달 | 정상 — 다음날 자동 재개 / `llm-budget.sh status` |
+| Telegram 버튼 무반응 | `launchctl list | grep telegram-poller` |
 
 ---
 
@@ -630,4 +779,4 @@ source /Volumes/ServerData/Projects/blog/config/blog.env
 /Users/kimi/scripts/blog/
 ```
 
-*최종 업데이트: 실패 알림·에스컬레이션 (Phase 4-B) + scripts/blog 추가*
+*최종 업데이트: 구축 전 검토 + API 비용 절약 + 수동작업 자동화*

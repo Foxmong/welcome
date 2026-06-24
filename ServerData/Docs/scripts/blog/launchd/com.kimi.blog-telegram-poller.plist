@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.kimi.blog-telegram-poller</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/kimi/scripts/blog/telegram-callback-poller.sh</string>
+    <string>once</string>
+  </array>
+  <key>StartInterval</key>
+  <integer>60</integer>
+  <key>StandardOutPath</key>
+  <string>/Volumes/ServerData/Projects/blog/logs/launchd-telegram.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Volumes/ServerData/Projects/blog/logs/launchd-telegram.err</string>
+</dict>
+</plist>

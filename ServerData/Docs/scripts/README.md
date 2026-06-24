@@ -32,16 +32,23 @@
 | 파일 | 용도 |
 |---|---|
 | [blog/install-blog-scripts.sh](./blog/install-blog-scripts.sh) | 스크립트 맥미니 설치 |
-| [blog/telegram-alert.sh](./blog/telegram-alert.sh) | 실패·에스컬레이션 Telegram 알림 |
-| [blog/pipeline-common.sh](./blog/pipeline-common.sh) | 재시도, 로그, notify_failure |
-| [blog/blog-orchestrator.sh](./blog/blog-orchestrator.sh) | stock/deal 파이프라인 골격 |
-| [blog/config/blog.env.example](./blog/config/blog.env.example) | 설정 템플릿 |
+| [blog/setup-blog-wizard.sh](./blog/setup-blog-wizard.sh) | blog.env 마법사 |
+| [blog/install-blog-launchd.sh](./blog/install-blog-launchd.sh) | launchd 자동 등록 |
+| [blog/openrouter-call.sh](./blog/openrouter-call.sh) | LLM 호출 (예산·캐시) |
+| [blog/llm-budget.sh](./blog/llm-budget.sh) | 일일 LLM 상한 |
+| [blog/content-dedup.sh](./blog/content-dedup.sh) | 중복 필터 (LLM 전) |
+| [blog/telegram-approval.sh](./blog/telegram-approval.sh) | 승인 요청 |
+| [blog/telegram-callback-poller.sh](./blog/telegram-callback-poller.sh) | 승인 버튼 폴링 |
+| [blog/tistory-cookie-check.sh](./blog/tistory-cookie-check.sh) | 쿠키 자동 검사 |
+| [blog/deal-template-render.sh](./blog/deal-template-render.sh) | 핫딜 템플릿 (비용 절약) |
 
 가이드: [../guides/blog-automation-openclaw-openrouter.md](../guides/blog-automation-openclaw-openrouter.md) Phase 4-B
 
 ```bash
-# 예: 맥미니
+# 예: 맥미니 (순서대로)
 cd /Volumes/ServerData/Docs/scripts/blog
+./setup-blog-wizard.sh
 ./install-blog-scripts.sh
 ~/scripts/blog/blog-orchestrator.sh test-alert
+./install-blog-launchd.sh
 ```

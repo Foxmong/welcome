@@ -1,0 +1,7 @@
+{
+  "us": ["NVDA", "TSLA", "AAPL", "MSFT", "AMZN"],
+  "kr": ["005930", "000660", "035420"],
+  "etf": ["VOO", "QQQ", "069500"],
+  "earnings_priority": ["NVDA", "TSLA", "005930"],
+  "notes": "실적 7일 이내 종목만 sonnet 심층 분석 (STOCK_DEEP=1)"
+}

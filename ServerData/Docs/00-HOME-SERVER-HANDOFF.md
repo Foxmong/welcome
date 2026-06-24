@@ -24,7 +24,7 @@ CentOS VM          → Linux 실습, Docker, Uptime Kuma
 **핵심 구축:** ✅ 완료 (~100%)  
 **운영 안정화:** ✅ 완료 (100%) — SSHFS automount, VM autostart, restic 확인  
 **앱 서버 확장:** 🔧 ~60% (whoami+Tunnel ✅, status/Gitea 진행 중)  
-**블로그 자동화:** 📋 계획 확정 — [blog-automation-openclaw-openrouter.md](./guides/blog-automation-openclaw-openrouter.md)
+**블로그 자동화:** 📋 설계 완료 — 구축 대기 — [blog-automation-openclaw-openrouter.md](./guides/blog-automation-openclaw-openrouter.md)
 
 ---
 
@@ -188,14 +188,16 @@ VirtualBox ── CentOS VM
 | 수익 | **애드센스 + 쿠팡 파트너스** |
 | 맥미니 RAM | **8GB** (VM 2GB 권장) |
 | 주식 톤 | **분석형** |
+| API 비용 | **일일 상한 + 캐시 + 템플릿** (sonnet은 주식 본문만) |
+
+**직접 할 일 (최소 4가지):** Tistory 2개 개설, 쿠키 최초 export, 수익화 신청, Telegram 승인 클릭
 
 **구축 순서 (요약):**
 
-1. OpenClaw + OpenRouter + Telegram (맥미니)
-2. VM RAM 2GB 축소, 스케줄 분리 (restic 03:00)
-3. Tistory 2개 + 애드센스·쿠팡 파트너스
-4. `ServerData/Projects/blog/` + 크롤 스크립트 + **실패 알림** (`scripts/blog/`)
-5. 주식 MVP → 핫딜 자동화 → launchd 운영
+1. `setup-blog-wizard.sh` → `install-blog-scripts.sh` → `install-blog-launchd.sh`
+2. OpenClaw + OpenRouter (Phase 1)
+3. VM RAM 2GB, Tistory 쿠키 export
+4. `test-alert` → 주식 MVP → 핫딜 자동화
 
 **미시작:** Tistory 블로그 호스트명, OpenClaw 설치, 스크립트 구현
 
@@ -387,12 +389,11 @@ sftp kimi@100.127.117.23
 
 ### 블로그 자동화 (다음 단계)
 
-- [ ] OpenClaw 설치 + OpenRouter + Telegram → [blog-automation-openclaw-openrouter.md](./guides/blog-automation-openclaw-openrouter.md) Phase 1
-- [ ] `install-blog-scripts.sh` + `test-alert` (실패 알림 확인)
-- [ ] VM RAM 2GB 축소 (8GB 맥)
-- [ ] Tistory 2개 개설 + 애드센스·쿠팡 파트너스
-- [ ] 주식 MVP (크롤 → 초안 → 승인 → 발행)
-- [ ] 핫딜 에펨 완전 자동 파이프라인
+- [ ] `setup-blog-wizard.sh` + `install-blog-scripts.sh` + `install-blog-launchd.sh`
+- [ ] OpenClaw 설치 → [blog-automation-openclaw-openrouter.md](./guides/blog-automation-openclaw-openrouter.md) Phase 1
+- [ ] Tistory 2개 + 쿠키 최초 export + 애드센스·쿠팡 신청
+- [ ] `test-alert` + Telegram 승인 버튼 테스트
+- [ ] 주식 MVP → 핫딜 자동화
 
 ### 운영 안정화 — ✅ 완료 (2026-06-14)
 
