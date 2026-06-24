@@ -27,8 +27,21 @@
 | [docker/nginx-proxy-manager/](./docker/nginx-proxy-manager/) | 리버스 프록시 |
 | [docker/cloudflared/](./docker/cloudflared/) | Cloudflare Tunnel |
 
+## 블로그 자동화 (맥미니 ~/scripts/blog)
+
+| 파일 | 용도 |
+|---|---|
+| [blog/install-blog-scripts.sh](./blog/install-blog-scripts.sh) | 스크립트 맥미니 설치 |
+| [blog/telegram-alert.sh](./blog/telegram-alert.sh) | 실패·에스컬레이션 Telegram 알림 |
+| [blog/pipeline-common.sh](./blog/pipeline-common.sh) | 재시도, 로그, notify_failure |
+| [blog/blog-orchestrator.sh](./blog/blog-orchestrator.sh) | stock/deal 파이프라인 골격 |
+| [blog/config/blog.env.example](./blog/config/blog.env.example) | 설정 템플릿 |
+
+가이드: [../guides/blog-automation-openclaw-openrouter.md](../guides/blog-automation-openclaw-openrouter.md) Phase 4-B
+
 ```bash
-# 예: VM
-mkdir -p ~/docker/myapp
-scp .../scripts/docker/myapp/docker-compose.yml foxmong@192.168.0.113:~/docker/myapp/
+# 예: 맥미니
+cd /Volumes/ServerData/Docs/scripts/blog
+./install-blog-scripts.sh
+~/scripts/blog/blog-orchestrator.sh test-alert
 ```

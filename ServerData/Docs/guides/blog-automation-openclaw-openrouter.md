@@ -27,7 +27,7 @@
 │  ├─ OpenClaw Gateway (launchd 24/7)                          │
 │  ├─ 크롤러 (RSS/API/에펨) — launchd/cron                    │
 │  ├─ OpenRouter (단계별 모델)                                 │
-│  ├─ 승인 봇 (Telegram 권장)                                  │
+│  ├─ 승인 봇 (Telegram) + 실패 알림 (telegram-alert.sh)      │
 │  └─ Tistory 발행 스크립트 (승인 후)                          │
 │  VirtualBox VM 2~4GB — Uptime Kuma, Tunnel (블로그 X)       │
 └─────────────────────────────────────────────────────────────┘
@@ -48,6 +48,7 @@
 | 2 | VM RAM 2GB, 스케줄 분리 | Phase 2 |
 | 3 | Tistory 2개 + 폴더·`blog.env` | Phase 3 |
 | 4 | Telegram 승인 + Tistory 임시저장 | Phase 4 |
+| 4-B | **실패 알림·에스컬레이션** | Phase 4-B |
 | 5 | OpenClaw 에이전트 4+1 | Phase 5 |
 | 6 | 주식·핫딜 크롤 파이프라인 | Phase 6 |
 | 7 | launchd 스케줄 등록 | Phase 7 |
@@ -281,7 +282,85 @@ OpenClaw 스킬 또는 `approval-bot.py`가 callback 처리.
 
 ---
 
-## Phase 5 — OpenClaw 에이전트 구성
+## Phase 4-B — 실패 알림·에스컬레이션 (필수)
+
+> **승인 알림**과 별도로, AI·크롤·발행이 **실패할 때** Telegram으로 알림을 보냅니다.  
+> 스크립트: [scripts/blog/](../scripts/blog/) → `install-blog-scripts.sh`로 맥미니에 설치
+
+### 4-B-1. 알림 종류
+
+| 심각도 | 예시 | 동작 |
+|---|---|---|
+| `info` | 초안 준비 완료, 건너뜀 로그 | 알림만 |
+| `warn` | 가격 불일치·품절 skip, 재시도 중 | 알림, 파이프라인 계속 |
+| `error` | LLM 3회 실패, 숫자 검증 실패, Tistory 401 | 알림 + 해당 건 중단 |
+| `critical` | 크롤 연속 실패, OpenClaw gateway down | 알림 + **파이프라인 자동 일시정지** |
+
+### 4-B-2. 실패 시 흐름
+
+```text
+단계 실행
+  → 실패? → 재시도 (기본 3회, 30초 간격)
+  → 3회 실패? → telegram-alert.sh (Telegram)
+  → critical? → pause-{stock|deal}.flag 생성 → 이후 스케줄 skip + 알림
+
+재개: rm /Volumes/ServerData/Projects/blog/config/pause-stock.flag
+```
+
+**중복 알림 방지:** 동일 원인은 `ALERT_COOLDOWN_SEC`(기본 3600초) 내 1회만 전송.
+
+### 4-B-3. 단계별 알림 매핑
+
+| 파이프라인 | 단계 | 실패 시 |
+|---|---|---|
+| stock | crawl | error → 재시도 → critical 시 pause |
+| stock | draft-writer (OpenRouter) | error → 재시도 → pause |
+| stock | validate (숫자 검증) | error → 초안 폐기 + 알림 (발행 안 함) |
+| stock | tistory-draft | error → 알림, 수동 쿠키 갱신 |
+| deal | crawl (에펨) | error → 재시도 → critical 시 pause |
+| deal | verify-price | warn → skip + 알림 (정상) |
+| deal | draft-writer | error → 재시도 → pause |
+| system | openclaw gateway | critical → 즉시 알림 |
+
+### 4-B-4. 설치·테스트 (맥미니)
+
+```bash
+cd /Volumes/ServerData/Docs/scripts/blog
+chmod +x install-blog-scripts.sh
+./install-blog-scripts.sh
+
+vi /Volumes/ServerData/Projects/blog/config/blog.env
+# TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID 설정
+
+~/scripts/blog/blog-orchestrator.sh test-alert
+# Telegram에 info/warn/error 테스트 3건 수신 확인
+```
+
+### 4-B-5. Telegram 메시지 예시
+
+```text
+🚨 블로그 자동화 알림
+심각도: error
+파이프라인: stock
+단계: draft-writer
+원인: OpenRouter 429 — NVDA Q1 draft failed after 3 attempts
+상세: rate limit exceeded
+
+조치: tail -50 /Volumes/ServerData/Projects/blog/logs/pipeline.log
+```
+
+### 4-B-6. 설정 (`blog.env`)
+
+```bash
+ALERT_ENABLED=1
+ALERT_COOLDOWN_SEC=3600
+ALERT_MAX_RETRIES=3
+ALERT_RETRY_DELAY_SEC=30
+```
+
+로그: `/Volumes/ServerData/Projects/blog/logs/pipeline.log` (JSON lines)
+
+---
 
 ### 5-1. 에이전트 4+1
 
@@ -313,6 +392,10 @@ OpenClaw 스킬 또는 `approval-bot.py`가 callback 처리.
 
 ```text
 /Users/kimi/scripts/blog/
+├── pipeline-common.sh           # 재시도, 로그, notify_failure
+├── telegram-alert.sh            # 실패·에스컬레이션 Telegram
+├── blog-orchestrator.sh         # stock/deal 파이프라인 + 실패 처리
+├── install-blog-scripts.sh      # 맥미니 설치
 ├── crawl-stock.sh
 ├── crawl-fmkorea-deals.sh
 ├── verify-coupang-price.sh
@@ -341,24 +424,26 @@ OpenClaw 스킬 또는 `approval-bot.py`가 callback 처리.
 
 ```text
 cron → watchlist/실적일 트리거
-  → crawl-stock.sh → raw/{date}-{ticker}.json
-  → OpenClaw stock-writer → drafts/{id}.html
-  → 숫자 검증 스크립트 (JSON vs 본문)
-  → tistory-draft.sh (published=0)
-  → telegram-approval.sh
+  → retry crawl-stock.sh → raw/{date}-{ticker}.json
+  → retry OpenClaw stock-writer → drafts/{id}.html
+  → 숫자 검증 실패? → notify_failure(error) → 폐기
+  → retry tistory-draft.sh (published=0)
+  → telegram-approval.sh (성공 시)
+  → 어느 단계든 3회 실패 → telegram-alert + pause-stock.flag
 ```
 
 ### 6-2. 핫딜 블로그 (에펨 완전 자동)
 
 ```text
-cron 3h → crawl-fmkorea-deals.sh
+cron 3h → retry crawl-fmkorea-deals.sh
   → 화제순/추천순 상위 N (제목·URL·조회수만, 본문 X)
   → 상품명 정규화
   → verify-coupang-price.sh (파트너스 API)
-  → 가격 불일치/품절 → skip
-  → OpenClaw deal-writer → HTML + 제휴 링크
+  → 가격 불일치/품절 → notify_failure(warn) + skip (파이프라인 계속)
+  → retry OpenClaw deal-writer → HTML + 제휴 링크
   → 애드센스·제휴 문구 자동 삽입
   → tistory-draft + telegram 승인
+  → 크롤 3회 연속 실패 → telegram-alert(critical) + pause-deal.flag
 ```
 
 **에펨 크롤 규칙:**
@@ -409,6 +494,7 @@ cron 3h → crawl-fmkorea-deals.sh
 - [ ] OpenClaw 설치 + `openclaw doctor` OK
 - [ ] OpenRouter 키 + 월 한도
 - [ ] Telegram 봇 + chat_id
+- [ ] `install-blog-scripts.sh` + `test-alert` 수신 확인
 - [ ] VM RAM 2GB로 조정 (8GB 맥)
 - [ ] Tistory 2개 + 카테고리
 - [ ] 애드센스·쿠팡 파트너스 신청
@@ -445,6 +531,7 @@ cron 3h → crawl-fmkorea-deals.sh
 - [ ] Uptime Kuma: 블로그 URL 모니터
 - [ ] Search Console 2개 등록
 - [ ] 잘 된 키워드 → watchlist 반영
+- [ ] 실패 알림 cooldown·pause 플래그 동작 확인
 
 ---
 
@@ -470,9 +557,27 @@ cron 3h → crawl-fmkorea-deals.sh
 
 ---
 
-## Phase 10 — 스크립트 골격 예시
+## Phase 10 — 스크립트 골격
 
-### `telegram-approval.sh` (개념)
+템플릿: [scripts/blog/](../scripts/blog/) — 맥미니에 `install-blog-scripts.sh`로 배포
+
+### `telegram-alert.sh` (실패 알림)
+
+```bash
+~/scripts/blog/telegram-alert.sh \
+  --severity error --pipeline stock --step draft-writer \
+  --reason "OpenRouter 429" --context "NVDA Q1 draft"
+```
+
+### `pipeline-common.sh` — 다른 스크립트에서 source
+
+```bash
+source ~/scripts/blog/pipeline-common.sh
+retry_command stock crawl "Finnhub 수집" -- ./crawl-stock.sh NVDA
+# 실패 시 자동 notify_failure + 재시도
+```
+
+### `telegram-approval.sh` (승인 — 별도 구현)
 
 ```bash
 #!/bin/bash
@@ -503,6 +608,9 @@ source /Volumes/ServerData/Projects/blog/config/blog.env
 | OpenClaw gateway down | `openclaw gateway status` / launchd |
 | 에펨 차단 | delay 증가, IP 밴 시 일시 중지 |
 | 승인 안 옴 | Telegram chat_id·봇 토큰 |
+| 실패 알림 안 옴 | `ALERT_ENABLED=1`, `blog-orchestrator.sh test-alert` |
+| 알림 폭주 | `ALERT_COOLDOWN_SEC` 증가 (기본 3600) |
+| 파이프라인 멈춤 | `config/pause-*.flag` 삭제 후 재실행 |
 
 ---
 
@@ -522,4 +630,4 @@ source /Volumes/ServerData/Projects/blog/config/blog.env
 /Users/kimi/scripts/blog/
 ```
 
-*최종 업데이트: 사용자 확정 — Tistory, 승인 후, 에펨 완자동, 애드센스+쿠팡, 8GB, 분석형*
+*최종 업데이트: 실패 알림·에스컬레이션 (Phase 4-B) + scripts/blog 추가*

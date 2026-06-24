@@ -183,6 +183,7 @@ VirtualBox ── CentOS VM
 |---|---|
 | 플랫폼 | **Tistory** × 2 (주식 / 핫딜) |
 | 발행 | **승인 후** (초안 자동 → Telegram 알림 → 승인 시 게시) |
+| 실패 알림 | **Telegram 에스컬레이션** (재시도 3회 → 알림 → critical 시 pause) |
 | 에펨 크롤 | **완전 자동** |
 | 수익 | **애드센스 + 쿠팡 파트너스** |
 | 맥미니 RAM | **8GB** (VM 2GB 권장) |
@@ -193,7 +194,7 @@ VirtualBox ── CentOS VM
 1. OpenClaw + OpenRouter + Telegram (맥미니)
 2. VM RAM 2GB 축소, 스케줄 분리 (restic 03:00)
 3. Tistory 2개 + 애드센스·쿠팡 파트너스
-4. `ServerData/Projects/blog/` + 크롤 스크립트
+4. `ServerData/Projects/blog/` + 크롤 스크립트 + **실패 알림** (`scripts/blog/`)
 5. 주식 MVP → 핫딜 자동화 → launchd 운영
 
 **미시작:** Tistory 블로그 호스트명, OpenClaw 설치, 스크립트 구현
@@ -258,6 +259,7 @@ VirtualBox Guest Additions → Detected unsupported arm64
 ✅ VM RAM 2GB 권장 — Kuma + cloudflared만
 ✅ Tistory 공식 API 종료 → post.json(임시저장) + 승인 후 발행
 ✅ 에펨: 제목·키워드만 추출, 쿠팡 파트너스 API로 재링크
+✅ 실패 알림: telegram-alert.sh — LLM/크롤/발행 실패 시 Telegram, critical 시 pause
 ❌ Docker bind mount에 SSHFS 사용 금지 (기존과 동일)
 ```
 
@@ -386,6 +388,7 @@ sftp kimi@100.127.117.23
 ### 블로그 자동화 (다음 단계)
 
 - [ ] OpenClaw 설치 + OpenRouter + Telegram → [blog-automation-openclaw-openrouter.md](./guides/blog-automation-openclaw-openrouter.md) Phase 1
+- [ ] `install-blog-scripts.sh` + `test-alert` (실패 알림 확인)
 - [ ] VM RAM 2GB 축소 (8GB 맥)
 - [ ] Tistory 2개 개설 + 애드센스·쿠팡 파트너스
 - [ ] 주식 MVP (크롤 → 초안 → 승인 → 발행)
