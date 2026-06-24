@@ -1,370 +1,516 @@
 # 블로그 자동 발행 구축 가이드 (0→100)
 
-> **전제:** OpenClaw 설정 완료, LLM은 **OpenRouter** (로컬 모델 없음)  
-> **인프라:** 맥미니 24/7 + (선택) CentOS VM 홈서버  
-> **블로그:** ① 국내·해외 주식 ② 핫딜 정보
+> **OpenClaw 설치**부터 **Tistory 승인 발행**까지 전체 절차  
+> **LLM:** OpenRouter only (로컬 모델 없음)  
+> **맥미니:** RAM **8GB** + 홈서버 VM 동시 운영
 
 ---
 
-## 0. 한 페이지 아키텍처
+## 확정 설정 (사용자 답변 반영)
 
-```text
-[데이터 수집]          [OpenClaw]              [발행]
- RSS/API/크롤링    →    OpenRouter LLM    →    CMS/블로그
- (스케줄·큐)           (모델 라우팅)           (초안·검토·게시)
-
-맥미니: OpenClaw + cron/launchd + 크롤러 스크립트
-홈서버 VM: Uptime Kuma, Tunnel, (선택) Gitea — 블로그 호스팅은 보통 외부
-```
-
-| 구분 | 권장 위치 | 이유 |
-|---|---|---|
-| OpenClaw, 크롤링, LLM 호출 | **맥미니** | API 키·스케줄·부하 분리 |
-| Uptime Kuma, Tunnel | **VM** | 이미 구축됨 |
-| 블로그 호스팅 | **Vercel / WordPress / Ghost / Tistory** | SEO·CDN·관리 UI |
-| 원고·이미지·로그 | **ServerData/Projects/blog/** | SSHFS 또는 맥 로컬 |
-
----
-
-## 1. 전략 수정 제안 (원안 대비)
-
-### 1-1. 주식 블로그
-
-**원안:** 초기 6개월 하루 1포스팅, 미국 70% / 국내 20% / ETF 10%
-
-**수정 제안:**
-
-| 항목 | 원안 | 제안 | 이유 |
-|---|---|---|---|
-| 발행 빈도 | 매일 1 | **주 5~7** (월~금) + 주말 1 심층 | 주말 실적·뉴스 정리용 |
-| 글 유형 비율 | 종목 위주 | **40% 종목 / 30% 실적·일정 / 20% ETF·배당 / 10% 심층** | 트래픽·SEO 균형 |
-| 국내 비율 | 20% | **초기 30%** → 데이터·키워드 검증 후 조정 | 국내 검색 경쟁·수익 다름 |
-| 면책 | (없음) | **모든 글 하단 고정 면책** | 투자 정보 법적 리스크 |
-| 사실 검증 | LLM만 | **크롤 데이터 + 숫자는 출처 링크 필수** | 환각 방지 |
-
-**콘텐츠 피라미드 (SEO):**
-
-```text
-[심층] 월 2~4편 — 3,000~5,000자 (종목·ETF bible 글)
-[일반] 주 3~4편 — 1,800~3,000자 (종목·실적)
-[속보형] 주 1~2편 — 800~1,200자 (FOMC·실적 당일)
-```
-
-매일 동일 깊이의 3,000자보다 **길이·유형을 섞는 것**이 운영·품질·검색 모두 유리합니다.
-
-### 1-2. 핫딜 블로그
-
-**원안:** 에펨 핫딜 크롤 → 공식 URL로 재작성
-
-**수정 제안:**
-
-| 항목 | 제안 |
+| 항목 | 선택 |
 |---|---|
-| 에펨 | **신호(source)로만** — 본문·이미지 복사 금지, 상품명·가격은 **공식몰 재확인** |
-| 수익 | **쿠팡 파트너스·링크프라이스** 등 공식 제휴 링크 |
-| 검증 | 가격·품절 **발행 직전 2차 체크** (자동화 실패 시 스킵) |
-| 빈도 | **하루 3~8건** 짧은 글 + **행사 주간** 1편 롱폼 |
-| 이미지 | 상품 썸네일은 **제휴 API/공식 CDN** — 커뮤 이미지 재업로드 X |
-
-핫딜은 **짧고 자주**가 맞습니다. 주식 블로그와 **완전 분리 워크플로** 권장.
-
----
-
-## 2. OpenRouter 모델 라우팅 (비용·품질)
-
-로컬 모델 없이 **단계별로 싼 모델 → 비싼 모델**만 쓰면 비용이 크게 줄어듭니다.
-
-| 단계 | 작업 | 모델 예시 (OpenRouter) | 비고 |
-|---|---|---|---|
-| 1 | 크롤 텍스트 요약·중복 제거 | `google/gemini-2.0-flash-lite` 등 저가 | 대량 처리 |
-| 2 | 아웃라인·키워드·제목 5안 | `anthropic/claude-3-haiku` / flash 계열 | 빠름 |
-| 3 | 본문 초안 | `anthropic/claude-sonnet-4` / `openai/gpt-4o-mini` | 가성비 |
-| 4 | 심층 분석·숫자 검수 프롬프트 | `anthropic/claude-sonnet-4` | 주 2~4편만 |
-| 5 | 핫딜 짧은 글 | **flash만** | 300~800자 |
-
-**OpenClaw 설정 팁:**
-
-- 워크플로별 `OPENROUTER_MODEL` 환경변수 분리 (`STOCK_DRAFT`, `DEAL_DRAFT`, `SUMMARIZER`)
-- 월 예산 상한 OpenRouter 대시보드에서 설정
-- 동일 프롬프트 **캐시** — 같은 실적 시즌 템플릿 재사용
+| 플랫폼 | **Tistory** × 2 (주식 / 핫딜) |
+| 발행 | **승인 후** (자동 초안 → 알림 → 승인 시 게시) |
+| 에펨 크롤 | **완전 자동** (후보→검증→초안까지) |
+| 수익 | **애드센스 + 쿠팡 파트너스** |
+| 맥미니 RAM | **8GB** |
+| 주식 톤 | **분석형** (팩트·지표·리스크 중심) |
 
 ---
 
-## 3. 크롤링 전략 (구체)
-
-### 3-1. 원칙
+## 0. 전체 아키텍처
 
 ```text
-✅ RSS, 공식 API, 공시, 제휴 API 우선
-✅ robots.txt·이용약관 확인
-✅ 요청 간격 1~3초, User-Agent 명시
-✅ 원문 URL·수집 시각 메타데이터 저장
-❌ 로그인 필요 커뮤 본문 전문 복사
-❌ 뉴스 원문 그대로 재게시
-❌ 상품 이미지 무단 저장 (제휴 규정 확인)
+┌─────────────────────────────────────────────────────────────┐
+│ 맥미니 8GB (kimi)                                            │
+│  ├─ OpenClaw Gateway (launchd 24/7)                          │
+│  ├─ 크롤러 (RSS/API/에펨) — launchd/cron                    │
+│  ├─ OpenRouter (단계별 모델)                                 │
+│  ├─ 승인 봇 (Telegram 권장)                                  │
+│  └─ Tistory 발행 스크립트 (승인 후)                          │
+│  VirtualBox VM 2~4GB — Uptime Kuma, Tunnel (블로그 X)       │
+└─────────────────────────────────────────────────────────────┘
+         │                              │
+         ▼                              ▼
+  ServerData/Projects/blog/     Tistory × 2
+  (raw, drafts, logs)           stock.xxx.tistory.com
+                                deal.xxx.tistory.com
 ```
 
-데이터 저장 경로 예:
+**8GB 핵심:** OpenClaw·크롤은 **맥에서**, VM은 **가볍게** (아래 §2-4).
 
-```text
-/Volumes/ServerData/Projects/blog/
-├── stock/
-│   ├── raw/           # 크롤 원본 JSON
-│   ├── drafts/        # LLM 초안
-│   └── published/     # 발행 로그
-└── deals/
-    ├── raw/
-    ├── drafts/
-    └── published/
-```
+### 한눈에 보는 실행 순서
 
----
-
-### 3-2. 주식 블로그 — 소스별
-
-| 소스 | 용도 | 방법 | 비고 |
-|---|---|---|---|
-| **Yahoo Finance RSS** | 해외 종목 뉴스 | RSS 파싱 | 무료, 안정 |
-| **SEC EDGAR** | 미국 실적·10-K | API/RSS (`sec.gov`) | 공식 |
-| **Finnhub / Alpha Vantage** | 시세·실적 캘린더 | 무료 tier API | 키 발급 |
-| **FRED / Fed** | FOMC·금리 | RSS | 일정 글 |
-| **네이버 금융** | 국내 종목 시세·뉴스 | **제한적** — API 없음, HTML 파싱은 ToS 주의 → **가급적 뉴스 RSS·공시** |
-| **DART (전자공시)** | 국내 실적 | Open API (키 필요) | 국내 20~30% 커버 |
-| **Investing.com / MarketWatch** | 일정 | RSS 일부 | |
-
-**종목 분석 글 파이프라인:**
-
-```text
-1. 트리거: 워치리스트 순환 OR 실적 48h 전 OR 검색량 키워드 큐
-2. 수집: 시세( API ) + 최근 뉴스 RSS 5건 + 실적( EDGAR/DART )
-3. LLM: 템플릿에 facts만 주입 — "추측"과 "사실" 섹션 분리
-4. 검수: 숫자·날짜가 소스 JSON과 일치하는지 스크립트 체크
-5. 이미지: TradingView 스냅샷(이용약관) 또는 직접 차트 API — 저작권 주의
-6. 발행 + 면책 + 출처 링크
-```
-
-**실적 시즌 글:**
-
-```text
-트리거: cron 매주 일요일 + 실적 캘린더 API
-수집: 이번 주 earnings calendar (Finnhub)
-출력: 표 + 한 줄 코멘트 (투자 권유 문구 금지)
-```
-
-**ETF / 배당:**
-
-```text
-트리거: 고정 키워드 큐 (SCHD, JEPI, VOO, KODEX...)
-수집: ETF holdings/배당 API 또는 공식 factsheet PDF 링크
-```
-
----
-
-### 3-3. 핫딜 블로그 — 소스별
-
-| 소스 | 역할 | 방법 |
+| 순서 | 작업 | 가이드 위치 |
 |---|---|---|
-| **에펨코리아 핫딜** | **후보 발굴** | 목록 RSS 없음 → **제한적 HTML** 또는 **수동 큐 + 반자동** (ToS 리스크 높음) |
-| **뽐뿌 핫딜** | 후보 발굴 | 동일 주의 |
-| **쿠팡 파트너스 API** | 상품명·가격·**제휴 링크** | 공식 |
-| **네이버 쇼핑 API** | 가격 비교 | 개발자 센터 |
-| **공식몰 직접** | **최종 URL·가격 확정** | Playwright/requests — 사이트별 셀렉터 |
-
-**에펨 활용 (원안 반영 + 안전화):**
-
-```text
-1. 크롤: 제목, 조회/추천 수, 상품 키워드만 추출 (본문 X)
-2. 필터: 화제순/추천순 상위 N개, 중복 상품 제거
-3. 검색: 상품명으로 쿠팡 파트너스 API 검색 → 공식 URL·현재가
-4. 가격 불일치/품절 → 발행 스킵
-5. LLM: 300~800자 — 상품명, 정가, 할인율, 제휴 링크, 한 줄 추천
-6. 이미지: 제휴 API 썸네일 URL만 사용
-```
-
-**대형 행사 (와우데이, 프라임데이):**
-
-```text
-트리거: 행사 7일 전 ~ 당일
-수집: 공식 행사 페이지 + 제휴 카테고리 베스트
-출력: 1,200~2,000자 카테고리별 링크 모음
-```
+| 1 | OpenClaw 설치 + OpenRouter + launchd | Phase 1 |
+| 2 | VM RAM 2GB, 스케줄 분리 | Phase 2 |
+| 3 | Tistory 2개 + 폴더·`blog.env` | Phase 3 |
+| 4 | Telegram 승인 + Tistory 임시저장 | Phase 4 |
+| 5 | OpenClaw 에이전트 4+1 | Phase 5 |
+| 6 | 주식·핫딜 크롤 파이프라인 | Phase 6 |
+| 7 | launchd 스케줄 등록 | Phase 7 |
+| 8 | 0→100 체크리스트 따라 운영 | Phase 8 |
 
 ---
 
-## 4. OpenClaw 워크플로 설계
+## Phase 1 — OpenClaw 설치 (맥미니)
 
-### 4-1. 에이전트 분리 (2블로그)
-
-| 에이전트 | 역할 |
-|---|---|
-| `stock-researcher` | 크롤·API 수집, JSON 정리 |
-| `stock-writer` | OpenRouter 초안 (주식 템플릿) |
-| `deal-scout` | 핫딜 후보 큐 |
-| `deal-writer` | 짧은 글 + 제휴 링크 삽입 |
-| `publisher` | CMS API 게시 (또는 마크다운 → 수동 승인 큐) |
-
-**한 에이전트에 두 블로그 섞지 않기** — 프롬프트·톤·면책이 다름.
-
-### 4-2. 주식 글 템플릿 (프롬프트 골격)
-
-```markdown
-# {제목}
-
-> 면책: 본 글은 투자 참고용이며 투자 권유가 아닙니다.
-
-## 요약 (3줄)
-## 기업/종목 소개
-## 최근 이슈 (출처: {url})
-## 실적·지표 (표 — 소스 JSON만 사용)
-## 긍정 요인
-## 리스크
-## 정리 (개인 의견 — '~로 보인다' 표현)
-## 참고 링크
-```
-
-**금지:** "지금 사세요", "목표가 ○○원" (면책·규제)
-
-### 4-3. 핫딜 글 템플릿
-
-```markdown
-# {상품명} {할인율} (○월 ○일 기준)
+### 1-1. 사전 준비
 
 | 항목 | 내용 |
-| 정가 | |
-| 할인가 | |
-| 링크 | [구매하기](제휴URL) |
-
-## 왜 주목? (2~3문장)
-## 주의 (품절·쿠폰 조건)
-```
-
----
-
-## 5. 발행 플랫폼 (0→100 중 선택)
-
-| 플랫폼 | 주식 | 핫딜 | 자동화 |
-|---|---|---|---|
-| **WordPress (호스팅)** | ✅ SEO 강 | ✅ | REST API |
-| **Ghost** | ✅ | ✅ | Admin API |
-| **Tistory** | ✅ 국내 SEO | ✅ | API 제한 — 반자동 |
-| **Vercel + MDX** (airpitmain) | △ | △ | Git push |
-| **Notion → 공개** | △ | ✅ 빠름 | API |
-
-**추천:**  
-- 주식 → **WordPress 또는 Tistory** (롱테일·애드센스)  
-- 핫딜 → **Tistory 또는 WordPress** (짧은 글·빠른 색인)  
-둘 다 같은 WP 멀티사이트도 가능: `stock.foxmong.cc` / `deal.foxmong.cc` (Tunnel 연동)
-
----
-
-## 6. 자동화 스케줄 (맥미니)
-
-```cron
-# 주식 — 평일 07:00 초안 생성, 08:00 발행 (미국 장 마감 후 글은 08:00 ET 변환)
-0 7 * * 1-5  /Users/kimi/scripts/blog/stock-pipeline.sh
-
-# 핫딜 — 3시간마다 후보 스캔, 하루 최대 8건
-0 */3 * * *  /Users/kimi/scripts/blog/deal-pipeline.sh
-
-# restic 03:00 — 겹치지 않음
-```
-
-**launchd** 권장 (cron FDA 이슈 회피).
-
-파이프라인 스크립트 = OpenClaw CLI 호출 + 로그 → `ServerBackup/logs/blog.log`
-
----
-
-## 7. 구축 단계 (0→100)
-
-### Phase 0 — 준비 (0~10)
-
-- [ ] OpenRouter API 키 + 월 한도
-- [ ] OpenClaw 에이전트 4개 골격
-- [ ] `ServerData/Projects/blog/` 폴더 구조
-- [ ] 블로그 플랫폼 2개 결정·계정
-- [ ] 면책·개인정보·제휴 문구 초안
-
-### Phase 1 — 주식 MVP (10~40)
-
-- [ ] Finnhub(또는 대안) API 키
-- [ ] DART API 키 (국내)
-- [ ] RSS 수집 스크립트 1개 동작
-- [ ] OpenClaw `stock-writer` + OpenRouter 연동
-- [ ] 수동 검수 후 **주 3편** 발행 (자동 X)
-- [ ] Google Search Console 등록
-
-### Phase 2 — 주식 자동화 (40~60)
-
-- [ ] 워치리스트 JSON (미국 70종 + 국내 30종 등)
-- [ ] 실적 캘린더 트리거
-- [ ] 숫자 검수 스크립트
-- [ ] 평일 자동 초안 → **텔레그램/이메일 승인** → 발행
-- [ ] 주 5~7편 안정화
-
-### Phase 3 — 핫딜 MVP (60~80)
-
-- [ ] 쿠팡 파트너스 API
-- [ ] deal-scout 후보 큐 (에펨은 반자동 시작 권장)
-- [ ] 가격 2차 검증
-- [ ] 하루 3건 수동 발행 테스트
-
-### Phase 4 — 핫딜 자동화 (80~95)
-
-- [ ] 짧은 글 flash 모델만
-- [ ] 품절·가격변동 스킵 로직
-- [ ] 하루 5~8건 상한
-
-### Phase 5 — 운영 (95~100)
-
-- [ ] Uptime Kuma에 블로그 URL 모니터
-- [ ] 월간 OpenRouter 비용·트래픽 리뷰
-- [ ] 잘 된 키워드/clusters 재투자
-
----
-
-## 8. 홈서버와 부하
-
-| 항목 | 부하 |
 |---|---|
-| OpenClaw + OpenRouter | API 호출 시만, **로컬 CPU 낮음** |
-| 크롤링 burst | 주기적, **맥미니 RAM/CPU 잠깐** |
-| VM Docker | 블로그 호스팅 안 하면 **변화 없음** |
-| restic 03:00 | 블로그 파이프라인과 **시간 분리** |
+| 계정 | [OpenRouter](https://openrouter.ai) API 키 |
+| 계정 | [Telegram Bot](https://t.me/BotFather) (승인 알림용, 권장) |
+| 키 보관 | `~/.openclaw/` 또는 1Password — Git 금지 |
 
-**맥미니 RAM 16GB**면 홈서버 + 주간 자동화 **무난**. 8GB면 VM RAM 줄이거나 자동화 시간대 조정.
+### 1-2. 설치 (공식 원라이너)
+
+**맥미니 터미널 (kimi):**
+
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+```
+
+- Node 22+ 자동 설치
+- 대화형 **onboarding** 시작
+
+**온보딩 선택:**
+
+| 단계 | 선택 |
+|---|---|
+| Install | QuickStart |
+| LLM Provider | **OpenRouter** |
+| API Key | OpenRouter 키 붙여넣기 |
+| Base URL | `https://openrouter.ai/api/v1` |
+| Agent name | `blog-orchestrator` (예) |
+
+### 1-3. 백그라운드 24/7 (launchd)
+
+```bash
+openclaw onboard --install-daemon
+# 또는
+openclaw gateway install
+```
+
+확인:
+
+```bash
+openclaw --version
+openclaw doctor
+openclaw gateway status
+```
+
+### 1-4. OpenRouter 모델 기본값 (설정 파일)
+
+`~/.openclaw/config` 또는 onboarding에서 환경변수 — 에이전트별로 나중에 분리.
+
+```bash
+# ~/.openclaw/env 또는 셸 프로필 (예시)
+export OPENROUTER_API_KEY="sk-or-..."
+export OPENROUTER_BASE_URL="https://openrouter.ai/api/v1"
+
+# 단계별 (스크립트·스킬에서 사용)
+export BLOG_MODEL_SUMMARY="google/gemini-2.0-flash-001"
+export BLOG_MODEL_OUTLINE="anthropic/claude-3-haiku"
+export BLOG_MODEL_STOCK="anthropic/claude-sonnet-4"
+export BLOG_MODEL_DEAL="google/gemini-2.0-flash-001"
+```
+
+OpenRouter 대시보드 → **Limits** 월 상한 설정.
+
+### 1-5. Telegram 승인 채널 연결
+
+OpenClaw onboarding 또는 채널 설정에서 **Telegram** 연결.
+
+- BotFather → `/newbot` → 토큰
+- OpenClaw에 Telegram 토큰·본인 chat_id 등록
+- 승인 메시지를 이 채널로 수신
+
+`chat_id` 확인: 봇에게 메시지 보낸 뒤  
+`https://api.telegram.org/bot<TOKEN>/getUpdates`
+
+### 1-6. 문제 해결
+
+```bash
+# openclaw 명령 없음
+export PATH="$(npm prefix -g)/bin:$PATH"
+echo 'export PATH="$(npm prefix -g)/bin:$PATH"' >> ~/.zshrc
+
+openclaw doctor
+```
+
+공식 문서: https://docs.openclaw.ai/install
 
 ---
 
-## 9. 법·정책 체크리스트
+## Phase 2 — 8GB RAM 운영 (필수)
 
-- [ ] 투자글 **투자 권유 아님** 면책 (금융소비자보호법 참고)
-- [ ] 제휴 링크 **광고 표시** (공정거래)
-- [ ] 크롤 대상 **이용약관**
-- [ ] 상품 이미지 **저작권·제휴 규정**
-- [ ] 개인정보처리방침 (쿠키·애드센스)
+| 구성 | RAM | 조치 |
+|---|---|---|
+| macOS | ~2GB | 절전 방지 유지 |
+| VM centos-server | **4GB → 2GB 권장** | VirtualBox 설정에서 RAM 축소 |
+| Docker (VM) | ~500MB | Kuma+cloudflared만 유지 |
+| OpenClaw + 크롤 | ~1~2GB peak | **크롤·LLM 시간대 분산** |
+
+**VBoxManage RAM 변경 (VM 종료 후):**
+
+```bash
+VBoxManage controlvm centos-server poweroff
+VBoxManage modifyvm centos-server --memory 2048
+VBoxManage startvm centos-server --type headless
+```
+
+**스케줄 분리 (겹침 방지):**
+
+| 시간 | 작업 |
+|---|---|
+| 03:00 | restic 백업 |
+| 06:00~07:00 | 주식 크롤+초안 |
+| 08:00 | 승인 알림 (전날 밤 초안) |
+| 09~21시 3h 간격 | 핫딜 크롤+초안 |
+| 22:00 | 승인 대기 큐 정리 |
 
 ---
 
-## 10. 확인이 필요한 질문 (답 주시면 Phase 1 세부 조정)
+## Phase 3 — 폴더·블로그 기초
 
-1. **블로그 호스팅** — Tistory / WordPress / Vercel / 기타?
-2. **발행** — 100% 자동 vs **승인 후 발행** (권장: 초기 3개월은 승인)?
-3. **에펨 크롤** — 완전 자동 vs **후보만 큐에 넣고 링크는 수동 확인**?
-4. **수익** — 애드센스 / 쿠팡 파트너스 / 둘 다?
-5. **맥미니 RAM** — 8GB vs 16GB?
-6. **주식 블로그 톤** — 뉴스형 vs 분석형 vs 초보 친화?
+### 3-1. Tistory 2개 개설
+
+| 블로그 | 주제 | 카테고리 예 |
+|---|---|---|
+| `stock-xxx` | 국내·해외 주식 분석 | 미국주식 / 국내주식 / ETF / 실적시즌 |
+| `deal-xxx` | 핫딜 | 쿠팡 / 네이버 / 해외직구 / 생활할인 |
+
+각 블로그:
+
+- [ ] 카카오 로그인·도메인 연결
+- [ ] 카테고리 ID 메모 (발행 스크립트용)
+- [ ] **애드센스** 신청 (승인 후 스크립트 삽입)
+- [ ] **쿠팡 파트너스** 가입 (핫딜 블로그)
+- [ ] 고정 면책문·제휴 광고 표시 문구 (블로그 설정)
+
+### 3-2. ServerData 폴더
+
+```bash
+mkdir -p /Volumes/ServerData/Projects/blog/{stock,deals}/{raw,drafts,approved,published,logs}
+mkdir -p /Volumes/ServerData/Projects/blog/config
+```
+
+### 3-3. 설정 파일 `config/blog.env` (chmod 600)
+
+```bash
+# Tistory — 블로그 호스트 (예: xxx.tistory.com)
+TISTORY_STOCK_HOST=your-stock.tistory.com
+TISTORY_DEAL_HOST=your-deal.tistory.com
+TISTORY_STOCK_CATEGORY_US=1234567
+TISTORY_STOCK_CATEGORY_KR=1234568
+# ... 카테고리 ID
+
+# 쿠팡 파트너스
+COUPANG_ACCESS_KEY=...
+COUPANG_SECRET_KEY=...
+
+# API
+FINNHUB_API_KEY=...
+DART_API_KEY=...
+OPENROUTER_API_KEY=...
+
+# Telegram
+TELEGRAM_BOT_TOKEN=...
+TELEGRAM_CHAT_ID=...
+
+# 에펨 (완전 자동 — 요청 간격 준수)
+FMKOREA_HOTDEAL_URL=https://...
+CRAWL_DELAY_SEC=2
+```
 
 ---
 
-## 11. 더 나은 아이디어 요약
+## Phase 4 — Tistory 발행 (승인 후)
 
-1. **매일 동일 3,000자** → **길이·유형 믹스** + 심층 pillar 월 2~4편  
-2. **에펨** → 신호만, **공식 제휴 API로 링크·가격 확정**  
-3. **OpenRouter** → 단계별 저가/고가 모델 라우팅  
-4. **초기 3개월** → 반자동(승인) 후 자동화 상향  
-5. **두 블로그** → OpenClaw 에이전트·스케줄·템플릿 완전 분리  
-6. **숫자·가격** → LLM 말만 믿지 말고 **JSON 대조 스크립트**
+> **주의:** Tistory 공식 Open API는 **2023년 종료**. 개인 자동화는 아래 중 택1.
+
+### 방식 A — 임시저장 + 승인 후 발행 (권장)
+
+1. 파이프라인이 HTML 초안 생성
+2. `published: 0` (임시저장)으로 Tistory `post.json` 호출
+3. Telegram: 제목·요약·**티스토리 미리보기 링크**·[승인]/[거절]
+4. **승인** → 동일 글 `published: 1` 업데이트 또는 발행 API 재호출
+5. **거절** → 로그만 남기고 삭제
+
+### 방식 B — OpenClaw 브라우저 자동화
+
+- Tistory 관리자 UI에 직접 붙여넣기·발행
+- 쿠키 만료에 강함 → 주기적 로그인 필요
+
+### post.json 핵심 (방식 A)
+
+```text
+POST https://{blog}.tistory.com/manage/post.json
+Headers: Cookie (TSSESSION, _T_ANO...), Referer, User-Agent
+Body JSON:
+  id: "0"
+  title, content (HTML), contentType: "html"
+  category: {카테고리ID}
+  published: 0   ← 승인 전 임시저장
+  visibility: 20
+  tag: "..."
+```
+
+**쿠키 갱신:** 주 1회 수동 로그인 후 쿠키 export → `config/tistory-cookies.json`  
+또는 Playwright로 headless 로그인 (완전 자동화 시).
+
+스크립트 위치 예: `/Users/kimi/scripts/blog/tistory-publish.sh`
+
+### 승인 플로우 (Telegram)
+
+```text
+[주식 초안]
+제목: 엔비디아 실적 분석 — 2026 Q1
+요약: (3줄)
+미리보기: https://your-stock.tistory.com/manage/...
+[✅ 승인] [❌ 거절]
+
+승인 → tistory-publish.sh --approve {draft_id}
+거절 → archive
+```
+
+OpenClaw 스킬 또는 `approval-bot.py`가 callback 처리.
+
+---
+
+## Phase 5 — OpenClaw 에이전트 구성
+
+### 5-1. 에이전트 4+1
+
+| 에이전트 | 역할 | 모델 |
+|---|---|---|
+| `stock-researcher` | RSS/API/DART 수집 → JSON | flash |
+| `stock-writer` | **분석형** HTML 초안 | sonnet |
+| `deal-scout` | 에펨 완전 자동 크롤 | (스크립트) + flash 요약 |
+| `deal-writer` | 300~800자 + 제휴 링크 | flash |
+| `publisher` | Tistory 임시저장 + Telegram | haiku |
+
+**주식 톤 (분석형) 프롬프트 핵심:**
+
+```text
+- 투자 권유 금지 ("사세요/팔세요" X)
+- 모든 숫자는 제공 JSON만 인용, 출처 URL 표기
+- 구성: 요약 → 기업개요 → 재무/실적 표 → 모멘텀 → 리스크 → 시나리오(확률 표현) → 면책
+- 문체: 분석 보고서, 감정 배제
+```
+
+### 5-2. OpenClaw 스킬/워크플로 등록
+
+`~/.openclaw/skills/` 또는 문서화된 skill 경로에:
+
+- `stock-daily-pipeline` — cron에서 `openclaw run stock-daily`
+- `deal-scan-pipeline` — 3시간마다
+
+각 스킬이 호출하는 **외부 스크립트:**
+
+```text
+/Users/kimi/scripts/blog/
+├── crawl-stock.sh
+├── crawl-fmkorea-deals.sh
+├── verify-coupang-price.sh
+├── generate-draft-openclaw.sh   # OpenRouter 호출 래퍼
+├── tistory-draft.sh
+├── telegram-approval.sh
+└── tistory-publish.sh
+```
+
+---
+
+## Phase 6 — 크롤링 (완전 자동)
+
+### 6-1. 주식 블로그
+
+| 소스 | 용도 | 주기 |
+|---|---|---|
+| Finnhub | 시세·실적 캘린더 | 일 1회 |
+| DART Open API | 국내 공시 | 일 1회 |
+| Yahoo Finance RSS | 해외 뉴스 | 6h |
+| SEC EDGAR RSS | 미국 공시 | 일 1회 |
+
+**종목 큐:** `config/stock-watchlist.json` (미국 70% / 국내 30% / ETF 10%)
+
+**파이프라인:**
+
+```text
+cron → watchlist/실적일 트리거
+  → crawl-stock.sh → raw/{date}-{ticker}.json
+  → OpenClaw stock-writer → drafts/{id}.html
+  → 숫자 검증 스크립트 (JSON vs 본문)
+  → tistory-draft.sh (published=0)
+  → telegram-approval.sh
+```
+
+### 6-2. 핫딜 블로그 (에펨 완전 자동)
+
+```text
+cron 3h → crawl-fmkorea-deals.sh
+  → 화제순/추천순 상위 N (제목·URL·조회수만, 본문 X)
+  → 상품명 정규화
+  → verify-coupang-price.sh (파트너스 API)
+  → 가격 불일치/품절 → skip
+  → OpenClaw deal-writer → HTML + 제휴 링크
+  → 애드센스·제휴 문구 자동 삽입
+  → tistory-draft + telegram 승인
+```
+
+**에펨 크롤 규칙:**
+
+- `CRAWL_DELAY_SEC=2` 이상
+- User-Agent 명시
+- robots.txt 확인
+- **본문·이미지 재게시 금지** — 키워드만 추출
+
+### 6-3. 수익 삽입
+
+| 블로그 | 수익 |
+|---|---|
+| 주식 | **애드센스** (Tistory 스킨/본문 하단) |
+| 핫딜 | **쿠팡 파트너스** 링크 본문 + **애드센스** |
+
+핫딜 글 템플릿 하단:
+
+```html
+<p><small>이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.</small></p>
+```
+
+주식 글 하단:
+
+```html
+<p><small>본 글은 투자 참고용이며, 투자 권유가 아닙니다. 투자 손실에 대한 책임은 본인에게 있습니다.</small></p>
+```
+
+---
+
+## Phase 7 — 스케줄 (launchd, cron 대신 권장)
+
+맥미니 cron FDA 이슈 → **launchd** 사용.
+
+`~/Library/LaunchAgents/com.kimi.blog-stock.plist` — 평일 06:00  
+`~/Library/LaunchAgents/com.kimi.blog-deal.plist` — 3시간 간격 StartInterval
+
+또는 하나의 `blog-orchestrator.sh`에서 시간 분기.
+
+**restic 03:00과 겹치지 않게** 이미 분리됨.
+
+---
+
+## Phase 8 — 구축 체크리스트 (0→100)
+
+### 0~20: 기반
+
+- [ ] OpenClaw 설치 + `openclaw doctor` OK
+- [ ] OpenRouter 키 + 월 한도
+- [ ] Telegram 봇 + chat_id
+- [ ] VM RAM 2GB로 조정 (8GB 맥)
+- [ ] Tistory 2개 + 카테고리
+- [ ] 애드센스·쿠팡 파트너스 신청
+- [ ] `ServerData/Projects/blog/` 구조
+
+### 20~50: 주식 MVP
+
+- [ ] Finnhub + DART API 키
+- [ ] `crawl-stock.sh` 동작
+- [ ] stock-writer 분석형 초안 1편
+- [ ] Tistory 임시저장 + Telegram 승인 1회
+- [ ] 승인 후 발행 성공
+- [ ] 주 3편 승인 발행 (수동 트리거)
+
+### 50~70: 주식 자동화
+
+- [ ] watchlist + 실적 캘린더 트리거
+- [ ] 숫자 검증 스크립트
+- [ ] launchd 평일 06:00
+- [ ] 주 5~7편 승인 워크플로 안정화
+
+### 70~90: 핫딜 자동화
+
+- [ ] 쿠팡 파트너스 API 연동
+- [ ] `crawl-fmkorea-deals.sh` 완전 자동
+- [ ] 가격 2차 검증
+- [ ] 하루 3~8건 승인 큐 (상한)
+- [ ] 제휴·광고 문구 자동
+
+### 90~100: 운영
+
+- [ ] Tistory 쿠키 갱신 루틴 (주 1회)
+- [ ] OpenRouter 월 비용 리뷰
+- [ ] Uptime Kuma: 블로그 URL 모니터
+- [ ] Search Console 2개 등록
+- [ ] 잘 된 키워드 → watchlist 반영
+
+---
+
+## Phase 9 — 콘텐츠 전략 (확정)
+
+### 주식 (분석형)
+
+| 유형 | 비율 | 글자수 | 주기 |
+|---|---|---|---|
+| 종목 분석 | 40% | 1,800~5,000 | 주 2~3 |
+| 실적·일정 | 30% | 800~2,000 | 주 1~2 |
+| ETF·배당 | 20% | 1,800~3,000 | 주 1 |
+| 심층 | 10% | 3,000~5,000 | 월 2~4 |
+
+지역: 미국 70% / 국내 30% / ETF 10% (국내는 DART 데이터로 보강)
+
+### 핫딜
+
+| 유형 | 글자수 | 주기 |
+|---|---|---|
+| 일반 핫딜 | 300~800 | 하루 3~8 (승인 후) |
+| 행사 정리 | 1,200~2,000 | 행사 주 1편 |
+
+---
+
+## Phase 10 — 스크립트 골격 예시
+
+### `telegram-approval.sh` (개념)
+
+```bash
+#!/bin/bash
+# drafts/{id}.meta.json 읽어 Telegram 전송
+# 인라인 키보드: approve_{id} / reject_{id}
+```
+
+### `tistory-draft.sh` (개념)
+
+```bash
+#!/bin/bash
+source /Volumes/ServerData/Projects/blog/config/blog.env
+# Cookie from config/tistory-cookies.json
+# POST post.json published=0
+```
+
+승인 시 `published=1` 또는 manage API 재호출.
+
+---
+
+## 문제 해결
+
+| 증상 | 해결 |
+|---|---|
+| 맥 느림 | VM RAM 2GB, 크롤 시간 분산 |
+| Tistory 401 | 쿠키 갱신 |
+| post.json 실패 | Referer·category ID·HTML 이스케이프 확인 |
+| OpenClaw gateway down | `openclaw gateway status` / launchd |
+| 에펨 차단 | delay 증가, IP 밴 시 일시 중지 |
+| 승인 안 옴 | Telegram chat_id·봇 토큰 |
+
+---
+
+## 관련 문서
+
+- [00-HOME-SERVER-HANDOFF.md](../00-HOME-SERVER-HANDOFF.md)
+- [cloudflare-tunnel.md](./cloudflare-tunnel.md)
+- OpenClaw: https://docs.openclaw.ai
 
 ---
 
@@ -373,4 +519,7 @@
 ```text
 /Volumes/ServerData/Docs/guides/blog-automation-openclaw-openrouter.md
 /Volumes/ServerData/Projects/blog/
+/Users/kimi/scripts/blog/
 ```
+
+*최종 업데이트: 사용자 확정 — Tistory, 승인 후, 에펨 완자동, 애드센스+쿠팡, 8GB, 분석형*

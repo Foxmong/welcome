@@ -3,7 +3,7 @@
 > **새 세션 시작 시 이 파일을 먼저 읽으세요.**  
 > 작업 일지·가이드·현재 상태·다음 단계를 한곳에 정리했습니다.
 
-- **최종 업데이트:** 2026-06-14 (운영 안정화 완료)
+- **최종 업데이트:** 2026-06-15 (블로그 자동화 가이드 확정)
 - **서버:** kimiui-Macmini (Apple Silicon)
 - **작업자:** kimi
 - **목적:** 24/7 홈서버 — 외부 접속, Linux VM, 파일 공유, 모니터링, 백업, 추후 앱 서버
@@ -23,7 +23,8 @@ CentOS VM          → Linux 실습, Docker, Uptime Kuma
 
 **핵심 구축:** ✅ 완료 (~100%)  
 **운영 안정화:** ✅ 완료 (100%) — SSHFS automount, VM autostart, restic 확인  
-**앱 서버 확장:** 🔧 ~50% (whoami+Tunnel ✅, status/Gitea 진행 중)
+**앱 서버 확장:** 🔧 ~60% (whoami+Tunnel ✅, status/Gitea 진행 중)  
+**블로그 자동화:** 📋 계획 확정 — [blog-automation-openclaw-openrouter.md](./guides/blog-automation-openclaw-openrouter.md)
 
 ---
 
@@ -161,13 +162,47 @@ VirtualBox ── CentOS VM
 
 - [x] 작업 일지 06-11, 06-12, 06-14
 - [x] Tailscale + SFTP 가이드
+- [x] 블로그 자동화 가이드 (OpenClaw + OpenRouter + Tistory)
 - [x] 이 핸드오프 문서
+
+### 앱 서버 (추가)
+
+- [x] whoami `~/docker/myapp` → `:8080`
+- [x] Cloudflare Tunnel `home-server` Healthy
+- [x] 도메인 `foxmong.cc` — `https://whoami.foxmong.cc` 공개 확인
+- [ ] `status.foxmong.cc` + Access, Kuma HTTPS 모니터, 토큰 rotate, Gitea
 
 ---
 
-## 6. 중요 기술 결정 (반드시 기억)
+## 6. 블로그 자동화 (확정 설정)
 
-### 6-1. Guest Additions = ARM64 불가
+> **전체 절차:** [guides/blog-automation-openclaw-openrouter.md](./guides/blog-automation-openclaw-openrouter.md)  
+> OpenClaw 설치 → OpenRouter → 크롤 → 승인 → Tistory 발행
+
+| 항목 | 선택 |
+|---|---|
+| 플랫폼 | **Tistory** × 2 (주식 / 핫딜) |
+| 발행 | **승인 후** (초안 자동 → Telegram 알림 → 승인 시 게시) |
+| 에펨 크롤 | **완전 자동** |
+| 수익 | **애드센스 + 쿠팡 파트너스** |
+| 맥미니 RAM | **8GB** (VM 2GB 권장) |
+| 주식 톤 | **분석형** |
+
+**구축 순서 (요약):**
+
+1. OpenClaw + OpenRouter + Telegram (맥미니)
+2. VM RAM 2GB 축소, 스케줄 분리 (restic 03:00)
+3. Tistory 2개 + 애드센스·쿠팡 파트너스
+4. `ServerData/Projects/blog/` + 크롤 스크립트
+5. 주식 MVP → 핫딜 자동화 → launchd 운영
+
+**미시작:** Tistory 블로그 호스트명, OpenClaw 설치, 스크립트 구현
+
+---
+
+## 7. 중요 기술 결정 (반드시 기억)
+
+### 7-1. Guest Additions = ARM64 불가
 
 ```text
 VirtualBox Guest Additions → Detected unsupported arm64
@@ -175,14 +210,14 @@ VirtualBox Guest Additions → Detected unsupported arm64
 호스트↔VM GUI 복붙: SSH 터미널 사용
 ```
 
-### 6-2. Docker bind mount ≠ SSHFS
+### 7-2. Docker bind mount ≠ SSHFS
 
 ```text
 ❌ /mnt/serverdata/AppData/... → Docker volume (FUSE 오류)
 ✅ ~/docker/uptime-kuma/data   → Docker volume (VM 로컬)
 ```
 
-### 6-3. Uptime Kuma SSH 모니터 (Docker bridge)
+### 7-3. Uptime Kuma SSH 모니터 (Docker bridge)
 
 ```text
 ❌ 127.0.0.1:22 (Kuma 컨테이너 자신 → SSH 없음)
@@ -191,7 +226,7 @@ VirtualBox Guest Additions → Detected unsupported arm64
 
 컨테이너에 `nc` 없음 → 정상. TCP 모니터는 Hostname만 맞으면 됨.
 
-### 6-4. SMB vs SFTP vs SSHFS
+### 7-4. SMB vs SFTP vs SSHFS
 
 | 방식 | 용도 |
 |---|---|
@@ -199,7 +234,7 @@ VirtualBox Guest Additions → Detected unsupported arm64
 | SFTP get/put | 임의 경로 파일 이동 (Tailscale) |
 | SSHFS | VM 안에서 ServerData 전체 접근 |
 
-### 6-5. restic
+### 7-5. restic
 
 ```text
 저장소: /Volumes/ServerBackup/restic-repo  (오타 resic-repo ❌)
@@ -208,7 +243,7 @@ VirtualBox Guest Additions → Detected unsupported arm64
 512GB → 2TB 전체 백업 불가, 중요 데이터만
 ```
 
-### 6-6. 보안
+### 7-6. 보안
 
 ```text
 ✅ Tailscale만 외부 접속, 포트포워딩 없음
@@ -216,9 +251,19 @@ VirtualBox Guest Additions → Detected unsupported arm64
 ✅ SSH/SFTP 계정: kimi, foxmong
 ```
 
+### 7-7. 블로그·OpenClaw (8GB 맥)
+
+```text
+✅ OpenClaw·크롤·LLM → 맥미니 (VM 아님)
+✅ VM RAM 2GB 권장 — Kuma + cloudflared만
+✅ Tistory 공식 API 종료 → post.json(임시저장) + 승인 후 발행
+✅ 에펨: 제목·키워드만 추출, 쿠팡 파트너스 API로 재링크
+❌ Docker bind mount에 SSHFS 사용 금지 (기존과 동일)
+```
+
 ---
 
-## 7. Uptime Kuma 모니터
+## 8. Uptime Kuma 모니터
 
 | 이름 | Type | Target | 비고 |
 |---|---|---|---|
@@ -232,7 +277,7 @@ VirtualBox Guest Additions → Detected unsupported arm64
 
 ---
 
-## 8. 백업
+## 9. 백업
 
 ### backup.sh
 
@@ -260,7 +305,7 @@ rm -rf /tmp/restic-restore-test
 
 ---
 
-## 9. 자주 쓰는 명령어
+## 10. 자주 쓰는 명령어
 
 ### 맥미니
 
@@ -302,7 +347,7 @@ sftp kimi@100.127.117.23
 
 ---
 
-## 10. 문제 해결 빠른 참조
+## 11. 문제 해결 빠른 참조
 
 | 증상 | 해결 |
 |---|---|
@@ -318,21 +363,33 @@ sftp kimi@100.127.117.23
 | `bad interpreter: /bin/bash^M` | `sed -i '' 's/\r$//'` (Mac) 또는 `sed -i 's/\r$//'` (Linux) |
 | Docker + SSHFS bind 실패 | `~/docker/` 로컬 (`~/docker/uptime-kuma/data`) |
 | nc not found (Kuma 컨테이너) | 무시, 모니터 Hostname만 수정 |
+| Tistory post.json 401 | 쿠키 갱신 (`config/tistory-cookies.json`) |
+| OpenClaw gateway down | `openclaw gateway status` / launchd |
+| 맥 8GB 느림 | VM RAM 2GB, 크롤·백업 시간 분산 |
 
 ---
 
-## 11. 미완료 / 다음 작업 (우선순위)
+## 12. 미완료 / 다음 작업 (우선순위)
 
 ### 확인 (한 번만)
 
-- [ ] **cron 자동 백업:** 내일 03:00 이후 `tail /Volumes/ServerBackup/logs/backup.log`
+- [ ] **cron 자동 백업:** 03:00 이후 `tail /Volumes/ServerBackup/logs/backup.log`
 
 ### 앱 서버 확장
 
-- [x] docker-compose 템플릿 (`scripts/docker/myapp`, `nginx-proxy-manager`, `cloudflared`)
-- [ ] VM 배포: `~/docker/myapp` whoami → [app-server-docker-compose.md](./guides/app-server-docker-compose.md)
-- [ ] Cloudflare Tunnel → [cloudflare-tunnel.md](./guides/cloudflare-tunnel.md)
+- [x] docker-compose 템플릿 (`scripts/docker/myapp`, `cloudflared`)
+- [x] VM 배포: `~/docker/myapp` whoami → `https://whoami.foxmong.cc`
+- [x] Cloudflare Tunnel `home-server` → [cloudflare-tunnel.md](./guides/cloudflare-tunnel.md)
+- [ ] Tunnel phase 2: status + Access, 토큰 rotate, Gitea → [tunnel-phase2-status-gitea.md](./guides/tunnel-phase2-status-gitea.md)
 - [ ] Nginx Proxy Manager (선택)
+
+### 블로그 자동화 (다음 단계)
+
+- [ ] OpenClaw 설치 + OpenRouter + Telegram → [blog-automation-openclaw-openrouter.md](./guides/blog-automation-openclaw-openrouter.md) Phase 1
+- [ ] VM RAM 2GB 축소 (8GB 맥)
+- [ ] Tistory 2개 개설 + 애드센스·쿠팡 파트너스
+- [ ] 주식 MVP (크롤 → 초안 → 승인 → 발행)
+- [ ] 핫딜 에펨 완전 자동 파이프라인
 
 ### 운영 안정화 — ✅ 완료 (2026-06-14)
 
@@ -348,19 +405,21 @@ sftp kimi@100.127.117.23
 
 ---
 
-## 12. 문서 목록
+## 13. 문서 목록
 
 | 파일 | 내용 |
 |---|---|
 | **00-HOME-SERVER-HANDOFF.md** | **← 이 파일 (새 세션 시작점)** |
 | setup-logs/2026-06-11-macmini-server-setup.md | 1일차: 디스크, Tailscale, VM 설치 |
 | setup-logs/2026-06-12-macmini-server-setup.md | 2일차: SSHFS, Guest Additions ARM |
-| setup-logs/2026-06-14-macmini-server-setup.md | 3일차: Docker, Kuma, restic, 운영 안정화 |
+| setup-logs/2026-06-14-macmini-server-setup.md | 3일차: Docker, Kuma, restic, Tunnel |
 | guides/tailscale-sftp-file-transfer.md | SFTP get/put 가이드 |
 | guides/ops-stabilization.md | **운영 안정화 실행 순서** |
 | guides/vm-sshfs-automount.md | SSHFS 부팅 자동 마운트 |
 | guides/app-server-docker-compose.md | 앱 서버 (whoami, NPM) |
 | guides/cloudflare-tunnel.md | Cloudflare Tunnel |
+| guides/tunnel-phase2-status-gitea.md | Tunnel phase 2 (status, Gitea) |
+| **guides/blog-automation-openclaw-openrouter.md** | **블로그 자동화 (OpenClaw→Tistory)** |
 | scripts/centos/ | SSHFS install 스크립트 |
 | scripts/docker/ | compose 템플릿 |
 
@@ -378,7 +437,7 @@ https://github.com/Foxmong/welcome/tree/cursor/server-setup-docs-f7a6/ServerData
 
 ---
 
-## 13. 새 세션 시작 프롬프트 (복사용)
+## 14. 새 세션 시작 프롬프트 (복사용)
 
 ```text
 맥미니 홈서버 프로젝트 이어서 진행.
@@ -388,9 +447,10 @@ https://github.com/Foxmong/welcome/tree/cursor/server-setup-docs-f7a6/ServerData
 - 맥미니 Tailscale 100.127.117.23, SSH/SMB/restic 완료
 - CentOS VM foxmong@100.69.135.104, Docker, Uptime Kuma :3001
 - SSHFS /mnt/serverdata, Docker는 ~/docker/ 로컬
-- 다음: cron backup.log 확인(내일), whoami+Tunnel 배포
+- whoami+Tunnel: https://whoami.foxmong.cc
+- 다음: 블로그 자동화 Phase 1 (OpenClaw 설치) 또는 Tunnel phase 2
 ```
 
 ---
 
-*이 문서는 2026-06-11 ~ 2026-06-14 홈서버 구축 전체를 요약한 핸드오프 문서입니다.*
+*이 문서는 2026-06-11 ~ 2026-06-15 홈서버 구축 전체를 요약한 핸드오프 문서입니다.*

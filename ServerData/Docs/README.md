@@ -21,6 +21,8 @@
 | [guides/vm-sshfs-automount.md](./guides/vm-sshfs-automount.md) | SSHFS 자동 마운트 |
 | [guides/app-server-docker-compose.md](./guides/app-server-docker-compose.md) | 앱 서버 |
 | [guides/cloudflare-tunnel.md](./guides/cloudflare-tunnel.md) | Cloudflare Tunnel |
+| [guides/tunnel-phase2-status-gitea.md](./guides/tunnel-phase2-status-gitea.md) | Tunnel phase 2 (status, Gitea) |
+| [guides/blog-automation-openclaw-openrouter.md](./guides/blog-automation-openclaw-openrouter.md) | **블로그 자동화 (OpenClaw→Tistory)** |
 
 ## 스크립트·템플릿
 
