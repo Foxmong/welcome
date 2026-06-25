@@ -189,6 +189,7 @@ VirtualBox ── CentOS VM
 | 맥미니 RAM | **8GB** (VM 2GB 권장) |
 | 주식 톤 | **분석형** |
 | API 비용 | **일일 상한 + 캐시 + 템플릿** (sonnet은 주식 본문만) |
+| 상위 노출 | **롱테일 SEO + 차별화 데이터 + 승인 품질 게이트** (Phase 10) |
 
 **직접 할 일 (최소 4가지):** Tistory 2개 개설, 쿠키 최초 export, 수익화 신청, Telegram 승인 클릭
 
@@ -262,6 +263,7 @@ VirtualBox Guest Additions → Detected unsupported arm64
 ✅ Tistory 공식 API 종료 → post.json(임시저장) + 승인 후 발행
 ✅ 에펨: 제목·키워드만 추출, 쿠팡 파트너스 API로 재링크
 ✅ 실패 알림: telegram-alert.sh — LLM/크롤/발행 실패 시 Telegram, critical 시 pause
+✅ SEO: 롱테일 제목·seo-enrich·일 발행 상한 — AI 검열 리스크 완화 (Phase 10)
 ❌ Docker bind mount에 SSHFS 사용 금지 (기존과 동일)
 ```
 

@@ -46,6 +46,12 @@ TEXT="[${PIPELINE} 초안]
 요약: ${SUMMARY}
 ${PREVIEW:+미리보기: ${PREVIEW}}
 
+📋 승인 전 확인 (30초)
+□ 숫자·가격·링크 정확?
+□ 제목이 구체적인가? (롱테일)
+□ AI 냄새 나는 반복 문장 없음?
+□ 대표 이미지 (없으면 발행 전 추가)
+
 승인하시겠습니까?"
 
 KEYBOARD="$(python3 - "$DRAFT_ID" "$PIPELINE" <<'PY'

@@ -54,6 +54,8 @@
 | 6 | 주식·핫딜 크롤 파이프라인 | Phase 6 |
 | 7 | launchd 스케줄 등록 | Phase 7 |
 | 8 | 0→100 체크리스트 따라 운영 | Phase 8 |
+| 9 | 콘텐츠 비율·글자수 | Phase 9 |
+| 10 | **상위 노출·검색 전략** | Phase 10 |
 
 ---
 
@@ -92,6 +94,7 @@
 | 에펨 IP 차단 | delay 2s+, pause 플래그 |
 | 8GB 메모리 부족 | VM 2GB, LLM 시간 분산 |
 | 분석 품질 저하 | sonnet은 주식 본문만, 실적일·심층만 deep |
+| **AI 콘텐츠 검열·저노출** | 차별화 데이터·승인 게이트·롱테일 SEO (Phase 10) |
 
 ---
 
@@ -676,7 +679,8 @@ launchctl list | grep com.kimi.blog
 - [ ] Tistory 쿠키 최초 export + `tistory-cookie-check.sh` OK
 - [ ] OpenRouter Limits + `llm-budget.sh status` 확인
 - [ ] Uptime Kuma: 블로그 URL 모니터
-- [ ] Search Console 2개 등록
+- [ ] Search Console + 네이버 서치어드바이저 등록
+- [ ] `seo-keywords.json` + `seo-enrich.sh` 연동
 - [ ] 잘 된 키워드 → watchlist 반영
 - [ ] 실패 알림 cooldown·pause 플래그 동작 확인
 
@@ -704,7 +708,140 @@ launchctl list | grep com.kimi.blog
 
 ---
 
-## Phase 10 — 스크립트 골격
+## Phase 10 — 상위 노출·검색 전략
+
+> **질문:** AI 포스팅이면 티스토리·네이버·구글 **내부 검열**로 상위 노출이 안 될 수 있지 않나?  
+> **답:** **그럴 수 있습니다.** 특히 얇은 반복 콘텐츠·대량 자동 발행은 노출·수익화 모두 불리합니다.  
+> 자동화는 **초안 생산**까지이고, **노출은 차별화·SEO·승인 품질**로 보완하는 전략이 필요합니다.
+
+### 10-1. 플랫폼별 리스크 (현실 인식)
+
+| 플랫폼 | AI/저품질 콘텐츠 대응 | 우리에게 의미 |
+|---|---|---|
+| **Google** | Helpful Content, 스팸 정책 — 대량·가치 없는 글 감점 | 주식은 **독자 가치(숫자·출처)** 없으면 노출 어려움 |
+| **네이버** | 티스토리 색인·품질 신호, 중복·얇은 글 저순위 | **네이버 웹마스터** 등록·롱테일 필수 |
+| **티스토리** | 내부 추천·이웃보다 **검색 유입**이 핵심 | 카테고리·태그·제목 구조화 |
+| **애드센스** | thin content·정책 위반 시 승인·노출 제한 | 면책·제휴 고지, 복붙 금지 |
+
+**핵심:** “AI 썼다” 자체보다 **다른 글과 똑같고 가치 없는 글**이 문제입니다.  
+우리 파이프라인의 **DART/Finnhub 숫자·쿠팡 가격 검증·승인 게이트**가 차별화 포인트입니다.
+
+### 10-2. 블로그별 노출 전략
+
+#### 주식 블로그 — “검색형 분석” (롱테일)
+
+| 전략 | 내용 | 자동화 |
+|---|---|---|
+| **롱테일 제목** | `삼성전자 주가` ❌ → `삼성전자 2026 Q1 실적 EPS 컨센서스 비교` ✅ | 키워드 큐 `seo-keywords.json` |
+| **실적 타이밍** | 실적 발표 **당일~48h** 글이 노출 유리 | watchlist `earnings_priority` |
+| **독점 데이터 각** | 표·숫자는 **크롤 JSON만** — 일반 뉴스 요약과 차별 | 숫자 검증 스크립트 |
+| **출처 명시** | Finnhub/DART/SEC 링크 필수 | 프롬프트 + 승인 체크리스트 |
+| **발행 속도** | 주식 **일 2건 상한** (양보다 깊이) | `STOCK_LLM_DAILY_MAX=3` 이하 권장 |
+| **내부 링크** | 같은 종목·섹터 과거 글 연결 | `seo-enrich.sh` 제안 |
+| **갱신** | 실적 후 숫자 바뀌면 **글 업데이트** (신규보다 유리할 때 있음) | 수동 또는 추후 스크립트 |
+
+#### 핫딜 블로그 — “속도형” (검색 보조)
+
+| 전략 | 내용 | 자동화 |
+|---|---|---|
+| **속도** | 에펨→검증→초안 **3시간 주기** — 늦으면 의미 감소 | launchd deal |
+| **검색보다 SNS·재방문** | 핫딜은 상위 키워드 경쟁 치열 → **구독·즐겨찾기**도 병행 | 티스토리 구독 유도 문구 |
+| **가격 정확도** | 틀린 가격 = 이탈·신뢰 하락 | 쿠팡 API 2차 검증 |
+| **중복 억제** | 같은 상품 7일 내 재게시 금지 | `content-dedup.sh` |
+| **일 발행 상한** | **6건/일** 이하 (스팸 신호 방지) | `DEAL_PUBLISH_DAILY_MAX` |
+
+### 10-3. AI 티 안 나게 (품질 게이트)
+
+자동화만으로는 부족합니다. **승인 단계**에서 아래를 거칩니다.
+
+```text
+[자동] dedup → 숫자검증 → seo-enrich → 임시저장
+[사람] Telegram 30초 체크 → 승인/거절
+[선택] 거절 시 1~2문장 직접 수정 후 재발행 (월 몇 건이면 충분)
+```
+
+**프롬프트 규칙 (이미 반영·강화):**
+
+- 문단 길이·소제목 구조를 글마다 **랜덤 시드**로 변경 (템플릿 고정 금지)
+- 주식: 표 1개 이상, bullet 남용 금지
+- 핫딜: 템플릿 HTML + **소개만** LLM — 본문 전체 생성 금지
+- “결론적으로”“요약하면” 등 **AI 상투구 금지** 리스트 프롬프트에 추가
+
+체크리스트: `config/editorial-checklist.txt`  
+승인 메시지에 요약 체크 항목 표시 (`telegram-approval.sh`).
+
+### 10-4. 기술 SEO (구축 시 1회 + 유지)
+
+| 항목 | 작업 | 주기 |
+|---|---|---|
+| **Google Search Console** | 2개 블로그 URL 등록, sitemap 제출 | 최초 + 월 점검 |
+| **네이버 서치어드바이저** | 사이트 등록, RSS/수집 요청 | 최초 |
+| **티스토리** | 카테고리 정리, 블로그 설명·대표 이미지 | 최초 |
+| **메타 설명** | 120~160자, 제목과 **다르게** | `seo-enrich.sh` 자동 |
+| **태그** | 3~5개, 대표 키워드만 | `seo-enrich.sh` 자동 |
+| **대표 이미지** | 글마다 1장 (차트 캡처·상품 공식 이미지) | 승인 전 수동 10초 |
+| **URL 구조** | 티스토리 기본 slug — 제목에 키워드 포함 | 제목 설계 |
+
+```bash
+# 발행 파이프라인에 SEO 단계 삽입 (임시저장 전)
+~/scripts/blog/seo-enrich.sh --pipeline stock --draft-id 20260614-nvda
+```
+
+### 10-5. 키워드·제목 공식
+
+**주식 제목 템플릿 (롱테일):**
+
+```text
+{종목명} {이벤트} {연도} — {핵심 지표 1개} 분석
+예: 엔비디아 2026 Q1 실적 — EPS·가이던스 정리
+```
+
+**핫딜 제목 템플릿:**
+
+```text
+{브랜드} {상품} {가격}원 ({할인율}) — {한 줄 혜택}
+예: 삼성 EVO 1TB 89,900원 (28%) — 쿠팡 로켓와우
+```
+
+키워드 큐 예시: `config/seo-keywords.json.example` → `seo-keywords.json` 복사 후 수정.
+
+### 10-6. 측정·피드백 루프
+
+| 지표 | 도구 | 액션 |
+|---|---|---|
+| 노출·클릭 | Search Console | 클릭 있는 키워드 → watchlist·제목 패턴 반영 |
+| 색인 여부 | GSC URL 검사 | 미색인 → 내부 링크·본문 길이 보강 |
+| 순위 추적 | GSC 또는 수동 (주 1회) | 상위 10 키워드만 집중 |
+| 이탈·체류 | 애드센스/티스토리 통계 | 짧은 글·틀린 가격 글 패턴 제거 |
+
+**월 1회 리뷰 (15분):**
+
+1. GSC 상위 쿼리 10개 export
+2. `seo-keywords.json`·watchlist 업데이트
+3. 클릭 0인 유형 글 비율 줄이기
+
+### 10-7. 기대치 조정
+
+| 기간 | 현실적 목표 |
+|---|---|
+| 1~3개월 | 색인·롱테일 **소량 유입** (일 10~50 PV) |
+| 3~6개월 | 실적 시즌 글 **특정 쿼리 1~3페이지** |
+| 6개월+ | 주식 1~2개 **대표 키워드** 안착, 핫딜은 **속도·재방문** |
+
+상위 노출은 **보장되지 않습니다.** 자동화는 **후보를 빠르게 만들고**, SEO·승인으로 **걸러진 글만 쌓는** 구조입니다.
+
+### 10-8. 체크리스트 (SEO)
+
+- [ ] Search Console + 네이버 서치어드바이저 등록
+- [ ] `seo-keywords.json` 블로그별 작성
+- [ ] `seo-enrich.sh` 파이프라인 연결
+- [ ] 승인 시 editorial-checklist 습관화
+- [ ] 주식 일 2건·핫딜 일 6건 상한 준수
+- [ ] 월 1회 GSC 키워드 리뷰
+
+---
+
+## Phase 11 — 스크립트 골격
 
 템플릿: [scripts/blog/](../scripts/blog/) — 맥미니에 `install-blog-scripts.sh`로 배포
 
@@ -722,6 +859,13 @@ launchctl list | grep com.kimi.blog
 source ~/scripts/blog/pipeline-common.sh
 retry_command stock crawl "Finnhub 수집" -- ./crawl-stock.sh NVDA
 # 실패 시 자동 notify_failure + 재시도
+```
+
+### `seo-enrich.sh` (노출 메타 — LLM 비용 0)
+
+```bash
+~/scripts/blog/seo-enrich.sh --pipeline stock --draft-id 20260614-nvda
+# → meta_description, tags, internal_link_suggestions 갱신
 ```
 
 ### `telegram-approval.sh` (승인 — 별도 구현)
@@ -760,6 +904,8 @@ source /Volumes/ServerData/Projects/blog/config/blog.env
 | 파이프라인 멈춤 | `config/pause-*.flag` 삭제 후 재실행 |
 | LLM 상한 도달 | 정상 — 다음날 자동 재개 / `llm-budget.sh status` |
 | Telegram 버튼 무반응 | `launchctl list | grep telegram-poller` |
+| 검색 노출 없음 | Phase 10 — 롱테일·GSC·발행 상한·본문 차별화 |
+| AI 느낌 강함 | 거절 후 1~2문장 수동 수정 / 프롬프트 상투구 금지 |
 
 ---
 
@@ -779,4 +925,4 @@ source /Volumes/ServerData/Projects/blog/config/blog.env
 /Users/kimi/scripts/blog/
 ```
 
-*최종 업데이트: 구축 전 검토 + API 비용 절약 + 수동작업 자동화*
+*최종 업데이트: 상위 노출·검색 전략 (Phase 10) + seo-enrich*

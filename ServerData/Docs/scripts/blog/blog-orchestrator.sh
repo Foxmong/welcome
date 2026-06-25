@@ -45,9 +45,12 @@ run_stock_pipeline() {
     return 1
   }
 
+  local draft_id="stock-$(date +%Y%m%d)"
+  [[ -x "${SCRIPT_DIR}/seo-enrich.sh" ]] && \
+    "${SCRIPT_DIR}/seo-enrich.sh" --pipeline stock --draft-id "$draft_id" 2>/dev/null || true
+
   retry_command stock tistory-draft "Tistory 임시저장" -- bash -c 'echo ok' || return 1
 
-  local draft_id="stock-$(date +%Y%m%d)"
   "${SCRIPT_DIR}/telegram-approval.sh" --pipeline stock --draft-id "$draft_id" 2>/dev/null || \
     notify_failure "info" "stock" "approval" "초안 준비" "$draft_id"
 

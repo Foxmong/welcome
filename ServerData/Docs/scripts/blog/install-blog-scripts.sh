@@ -20,7 +20,7 @@ SCRIPTS=(
   pipeline-common.sh telegram-alert.sh blog-orchestrator.sh
   llm-budget.sh openrouter-call.sh content-dedup.sh
   tistory-cookie-check.sh telegram-approval.sh telegram-callback-poller.sh
-  deal-template-render.sh tistory-publish.sh
+  deal-template-render.sh tistory-publish.sh seo-enrich.sh
   setup-blog-wizard.sh install-blog-launchd.sh
 )
 
@@ -34,7 +34,7 @@ if [[ ! -f "${CONFIG_DIR}/blog.env" ]]; then
   echo "    + blog.env (→ setup-blog-wizard.sh 권장)"
 fi
 
-for cf in deal-template.html stock-watchlist.json.example; do
+for cf in deal-template.html stock-watchlist.json.example seo-keywords.json.example editorial-checklist.txt; do
   dest="${cf%.example}"
   [[ -f "${CONFIG_DIR}/${dest}" ]] && continue
   install -m 644 "${SCRIPT_DIR}/config/${cf}" "${CONFIG_DIR}/${dest}" 2>/dev/null || \

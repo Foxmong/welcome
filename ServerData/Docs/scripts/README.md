@@ -41,6 +41,7 @@
 | [blog/telegram-callback-poller.sh](./blog/telegram-callback-poller.sh) | 승인 버튼 폴링 |
 | [blog/tistory-cookie-check.sh](./blog/tistory-cookie-check.sh) | 쿠키 자동 검사 |
 | [blog/deal-template-render.sh](./blog/deal-template-render.sh) | 핫딜 템플릿 (비용 절약) |
+| [blog/seo-enrich.sh](./blog/seo-enrich.sh) | 메타·태그·내부링크 (LLM 0원) |
 
 가이드: [../guides/blog-automation-openclaw-openrouter.md](../guides/blog-automation-openclaw-openrouter.md) Phase 4-B
 

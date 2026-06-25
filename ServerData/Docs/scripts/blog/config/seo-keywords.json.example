@@ -1,0 +1,22 @@
+{
+  "stock_longtail": [
+    "엔비디아 실적 분석 2026",
+    "테슬라 주가 전망 배터리데이",
+    "삼성전자 분기 실적 요약",
+    "VOO ETF 배당금 입금일",
+    "미국 금리 인하 수혜주"
+  ],
+  "deal_longtail": [
+    "쿠팡 로켓와우 특가",
+    "네이버 쇼핑 라이브 할인",
+    "생활용품 1+1"
+  ],
+  "rules": {
+    "title_max_chars": 60,
+    "meta_description_chars": "120-160",
+    "tags_per_post": "3-5",
+    "stock_posts_per_day_max": 2,
+    "deal_posts_per_day_max": 6,
+    "notes": "헤드 키워드(삼성전자 주가) 대신 롱테일 우선. 실적 발표 당일·전후 48h 내 글 우선."
+  }
+}
