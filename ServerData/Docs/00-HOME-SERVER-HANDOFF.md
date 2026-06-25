@@ -3,7 +3,7 @@
 > **새 세션 시작 시 이 파일을 먼저 읽으세요.**  
 > 작업 일지·가이드·현재 상태·다음 단계를 한곳에 정리했습니다.
 
-- **최종 업데이트:** 2026-06-15 (블로그 자동화 가이드 확정)
+- **최종 업데이트:** 2026-06-15 (블로그 마스터 문서 통합)
 - **서버:** kimiui-Macmini (Apple Silicon)
 - **작업자:** kimi
 - **목적:** 24/7 홈서버 — 외부 접속, Linux VM, 파일 공유, 모니터링, 백업, 추후 앱 서버
@@ -24,7 +24,7 @@ CentOS VM          → Linux 실습, Docker, Uptime Kuma
 **핵심 구축:** ✅ 완료 (~100%)  
 **운영 안정화:** ✅ 완료 (100%) — SSHFS automount, VM autostart, restic 확인  
 **앱 서버 확장:** 🔧 ~60% (whoami+Tunnel ✅, status/Gitea 진행 중)  
-**블로그 자동화:** 📋 설계 완료 — 구축 대기 — [blog-automation-openclaw-openrouter.md](./guides/blog-automation-openclaw-openrouter.md)
+**블로그 자동화:** 📋 설계 완료 — **[BLOG-AUTOMATION-MASTER.md](./BLOG-AUTOMATION-MASTER.md)** (단일 마스터)
 
 ---
 
@@ -162,7 +162,7 @@ VirtualBox ── CentOS VM
 
 - [x] 작업 일지 06-11, 06-12, 06-14
 - [x] Tailscale + SFTP 가이드
-- [x] 블로그 자동화 가이드 (OpenClaw + OpenRouter + Tistory)
+- [x] 블로그 자동화 마스터 문서 (`BLOG-AUTOMATION-MASTER.md`)
 - [x] 이 핸드오프 문서
 
 ### 앱 서버 (추가)
@@ -174,33 +174,20 @@ VirtualBox ── CentOS VM
 
 ---
 
-## 6. 블로그 자동화 (확정 설정)
+## 6. 블로그 자동화
 
-> **전체 절차:** [guides/blog-automation-openclaw-openrouter.md](./guides/blog-automation-openclaw-openrouter.md)  
-> OpenClaw 설치 → OpenRouter → 크롤 → 승인 → Tistory 발행
+> **전략·구축·SEO·비용·스크립트 전부 한 파일:** **[BLOG-AUTOMATION-MASTER.md](./BLOG-AUTOMATION-MASTER.md)**
 
-| 항목 | 선택 |
+| 항목 | 요약 |
 |---|---|
-| 플랫폼 | **Tistory** × 2 (주식 / 핫딜) |
-| 발행 | **승인 후** (초안 자동 → Telegram 알림 → 승인 시 게시) |
-| 실패 알림 | **Telegram 에스컬레이션** (재시도 3회 → 알림 → critical 시 pause) |
-| 에펨 크롤 | **완전 자동** |
-| 수익 | **애드센스 + 쿠팡 파트너스** |
-| 맥미니 RAM | **8GB** (VM 2GB 권장) |
-| 주식 톤 | **분석형** |
-| API 비용 | **일일 상한 + 캐시 + 템플릿** (sonnet은 주식 본문만) |
-| 상위 노출 | **롱테일 SEO + 차별화 데이터 + 승인 품질 게이트** (Phase 10) |
+| 플랫폼 | Tistory × 2 (주식 분석형 / 핫딜), 승인 후 발행 |
+| 스택 | OpenClaw + OpenRouter, 맥미니 8GB, VM 2GB |
+| 상태 | 설계·스크립트 골격 완료, **구축 미시작** |
+| 다음 | `setup-blog-wizard.sh` → OpenClaw 설치 |
 
-**직접 할 일 (최소 4가지):** Tistory 2개 개설, 쿠키 최초 export, 수익화 신청, Telegram 승인 클릭
+직접 할 일 4가지·파이프라인·SEO·API 상한 등 상세는 마스터 문서 참고.
 
-**구축 순서 (요약):**
-
-1. `setup-blog-wizard.sh` → `install-blog-scripts.sh` → `install-blog-launchd.sh`
-2. OpenClaw + OpenRouter (Phase 1)
-3. VM RAM 2GB, Tistory 쿠키 export
-4. `test-alert` → 주식 MVP → 핫딜 자동화
-
-**미시작:** Tistory 블로그 호스트명, OpenClaw 설치, 스크립트 구현
+**미시작:** Tistory 호스트명, OpenClaw 설치, 크롤러 E2E
 
 ---
 
@@ -255,16 +242,12 @@ VirtualBox Guest Additions → Detected unsupported arm64
 ✅ SSH/SFTP 계정: kimi, foxmong
 ```
 
-### 7-7. 블로그·OpenClaw (8GB 맥)
+### 7-7. 블로그·OpenClaw
 
 ```text
-✅ OpenClaw·크롤·LLM → 맥미니 (VM 아님)
-✅ VM RAM 2GB 권장 — Kuma + cloudflared만
-✅ Tistory 공식 API 종료 → post.json(임시저장) + 승인 후 발행
-✅ 에펨: 제목·키워드만 추출, 쿠팡 파트너스 API로 재링크
-✅ 실패 알림: telegram-alert.sh — LLM/크롤/발행 실패 시 Telegram, critical 시 pause
-✅ SEO: 롱테일 제목·seo-enrich·일 발행 상한 — AI 검열 리스크 완화 (Phase 10)
-❌ Docker bind mount에 SSHFS 사용 금지 (기존과 동일)
+✅ 전략·구축 단일 문서: BLOG-AUTOMATION-MASTER.md
+✅ OpenClaw·크롤·LLM → 맥미니 (VM 아님), VM RAM 2GB
+✅ Tistory post.json + 승인 후 발행, 실패 알림·SEO·API 상한 — 마스터 참고
 ```
 
 ---
@@ -389,13 +372,9 @@ sftp kimi@100.127.117.23
 - [ ] Tunnel phase 2: status + Access, 토큰 rotate, Gitea → [tunnel-phase2-status-gitea.md](./guides/tunnel-phase2-status-gitea.md)
 - [ ] Nginx Proxy Manager (선택)
 
-### 블로그 자동화 (다음 단계)
+### 블로그 자동화
 
-- [ ] `setup-blog-wizard.sh` + `install-blog-scripts.sh` + `install-blog-launchd.sh`
-- [ ] OpenClaw 설치 → [blog-automation-openclaw-openrouter.md](./guides/blog-automation-openclaw-openrouter.md) Phase 1
-- [ ] Tistory 2개 + 쿠키 최초 export + 애드센스·쿠팡 신청
-- [ ] `test-alert` + Telegram 승인 버튼 테스트
-- [ ] 주식 MVP → 핫딜 자동화
+- [ ] [BLOG-AUTOMATION-MASTER.md](./BLOG-AUTOMATION-MASTER.md) 체크리스트 따라 구축
 
 ### 운영 안정화 — ✅ 완료 (2026-06-14)
 
@@ -425,7 +404,7 @@ sftp kimi@100.127.117.23
 | guides/app-server-docker-compose.md | 앱 서버 (whoami, NPM) |
 | guides/cloudflare-tunnel.md | Cloudflare Tunnel |
 | guides/tunnel-phase2-status-gitea.md | Tunnel phase 2 (status, Gitea) |
-| **guides/blog-automation-openclaw-openrouter.md** | **블로그 자동화 (OpenClaw→Tistory)** |
+| **BLOG-AUTOMATION-MASTER.md** | **블로그 자동화 마스터 (전략·구축 단일 문서)** |
 | scripts/centos/ | SSHFS install 스크립트 |
 | scripts/docker/ | compose 템플릿 |
 
@@ -454,7 +433,8 @@ https://github.com/Foxmong/welcome/tree/cursor/server-setup-docs-f7a6/ServerData
 - CentOS VM foxmong@100.69.135.104, Docker, Uptime Kuma :3001
 - SSHFS /mnt/serverdata, Docker는 ~/docker/ 로컬
 - whoami+Tunnel: https://whoami.foxmong.cc
-- 다음: 블로그 자동화 Phase 1 (OpenClaw 설치) 또는 Tunnel phase 2
+- 블로그: /Volumes/ServerData/Docs/BLOG-AUTOMATION-MASTER.md
+- 다음: 블로그 구축 또는 Tunnel phase 2
 ```
 
 ---

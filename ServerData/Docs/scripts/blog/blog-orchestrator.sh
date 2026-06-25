@@ -80,9 +80,12 @@ run_deal_pipeline() {
     pause_pipeline deal; return 1
   }
 
+  local draft_id="deal-$(date +%Y%m%d-%H%M)"
+  [[ -x "${SCRIPT_DIR}/seo-enrich.sh" ]] && \
+    "${SCRIPT_DIR}/seo-enrich.sh" --pipeline deals --draft-id "$draft_id" 2>/dev/null || true
+
   retry_command deal tistory-draft "Tistory 임시저장" -- bash -c 'echo ok' || return 1
 
-  local draft_id="deal-$(date +%Y%m%d-%H%M)"
   "${SCRIPT_DIR}/telegram-approval.sh" --pipeline deals --draft-id "$draft_id" 2>/dev/null || \
     notify_failure "info" "deal" "approval" "초안 준비" "$draft_id"
 

@@ -2,7 +2,10 @@
 
 ## 🚀 새 세션은 여기부터
 
-**[00-HOME-SERVER-HANDOFF.md](./00-HOME-SERVER-HANDOFF.md)** — 전체 상태·접속 정보·완료/미완료·치트시트
+| 문서 | 용도 |
+|---|---|
+| **[00-HOME-SERVER-HANDOFF.md](./00-HOME-SERVER-HANDOFF.md)** | 홈서버 전체 |
+| **[BLOG-AUTOMATION-MASTER.md](./BLOG-AUTOMATION-MASTER.md)** | **블로그 자동화 (전략·구축 단일)** |
 
 ## 작업 일지 (날짜별)
 
@@ -22,7 +25,7 @@
 | [guides/app-server-docker-compose.md](./guides/app-server-docker-compose.md) | 앱 서버 |
 | [guides/cloudflare-tunnel.md](./guides/cloudflare-tunnel.md) | Cloudflare Tunnel |
 | [guides/tunnel-phase2-status-gitea.md](./guides/tunnel-phase2-status-gitea.md) | Tunnel phase 2 (status, Gitea) |
-| [guides/blog-automation-openclaw-openrouter.md](./guides/blog-automation-openclaw-openrouter.md) | **블로그 자동화 (OpenClaw→Tistory)** |
+| [BLOG-AUTOMATION-MASTER.md](./BLOG-AUTOMATION-MASTER.md) | **블로그 자동화 마스터 (단일)** |
 
 ## 스크립트·템플릿
 
