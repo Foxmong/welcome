@@ -4,8 +4,8 @@
 > Tistory × 2 · OpenClaw + OpenRouter · 맥미니 8GB · 승인 후 발행
 
 - **홈서버 핸드오프:** [00-HOME-SERVER-HANDOFF.md](./00-HOME-SERVER-HANDOFF.md)
+- **섹터별 상세 구축:** [guides/blog-sectors/README.md](./guides/blog-sectors/README.md) ← **단계별 진행**
 - **스크립트:** [scripts/blog/](./scripts/blog/)
-- **이전 분산 가이드:** `guides/blog-automation-openclaw-openrouter.md` → **이 파일로 통합됨**
 
 ---
 
@@ -168,6 +168,8 @@
 
 ## 5. 구축 순서 (0→100)
 
+> **상세 단계:** [guides/blog-sectors/](./guides/blog-sectors/) — 섹터 01~10
+
 ```bash
 # 맥미니
 cd /Volumes/ServerData/Docs/scripts/blog
@@ -277,7 +279,7 @@ VBoxManage modifyvm centos-server --memory 2048
 | 2026-06-15 | 최초 전략 확정 (Tistory, 승인, 에펨, 8GB, 분석형) |
 | 2026-06-15 | 실패 알림, API 비용 절약, 수동작업 자동화 |
 | 2026-06-15 | 상위 노출·SEO 전략 |
-| 2026-06-15 | **분산 가이드 통합 → 이 마스터 파일 1개로 관리** |
+| 2026-06-15 | **섹터별 상세 가이드** `guides/blog-sectors/` (GitHub) |
 
 ---
 

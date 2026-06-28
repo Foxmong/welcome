@@ -11,6 +11,7 @@
 | [cloudflare-tunnel.md](./cloudflare-tunnel.md) | Cloudflare Tunnel + 도메인 HTTPS |
 | [tunnel-phase2-status-gitea.md](./tunnel-phase2-status-gitea.md) | status+Access, Gitea, 토큰 rotate |
 | [blog-automation-openclaw-openrouter.md](./blog-automation-openclaw-openrouter.md) | → [BLOG-AUTOMATION-MASTER.md](../BLOG-AUTOMATION-MASTER.md) 로 통합 |
+| [blog-sectors/README.md](./blog-sectors/README.md) | **블로그 섹터별 상세 구축 (01~10)** |
 
 ## 맥미니 경로
 

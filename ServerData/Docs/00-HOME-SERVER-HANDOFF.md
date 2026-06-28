@@ -176,7 +176,8 @@ VirtualBox ── CentOS VM
 
 ## 6. 블로그 자동화
 
-> **전략·구축·SEO·비용·스크립트 전부 한 파일:** **[BLOG-AUTOMATION-MASTER.md](./BLOG-AUTOMATION-MASTER.md)**
+> **전략·구축 전부 한 파일:** **[BLOG-AUTOMATION-MASTER.md](./BLOG-AUTOMATION-MASTER.md)**  
+> **섹터별 상세 진행:** **[guides/blog-sectors/README.md](./guides/blog-sectors/README.md)**
 
 | 항목 | 요약 |
 |---|---|
@@ -405,6 +406,7 @@ sftp kimi@100.127.117.23
 | guides/cloudflare-tunnel.md | Cloudflare Tunnel |
 | guides/tunnel-phase2-status-gitea.md | Tunnel phase 2 (status, Gitea) |
 | **BLOG-AUTOMATION-MASTER.md** | **블로그 자동화 마스터 (전략·구축 단일 문서)** |
+| **guides/blog-sectors/** | **블로그 섹터별 상세 구축 (01~10)** |
 | scripts/centos/ | SSHFS install 스크립트 |
 | scripts/docker/ | compose 템플릿 |
 

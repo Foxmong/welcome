@@ -43,7 +43,7 @@
 | [blog/deal-template-render.sh](./blog/deal-template-render.sh) | 핫딜 템플릿 (비용 절약) |
 | [blog/seo-enrich.sh](./blog/seo-enrich.sh) | 메타·태그·내부링크 (LLM 0원) |
 
-가이드: [../BLOG-AUTOMATION-MASTER.md](../BLOG-AUTOMATION-MASTER.md)
+가이드: [../BLOG-AUTOMATION-MASTER.md](../BLOG-AUTOMATION-MASTER.md) · [../guides/blog-sectors/README.md](../guides/blog-sectors/README.md)
 
 ```bash
 # 예: 맥미니 (순서대로)
