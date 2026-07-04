@@ -4,6 +4,7 @@
 
 | 문서 | 용도 |
 |---|---|
+| **[PLATFORM-HANDOFF-2026-07-04.md](./PLATFORM-HANDOFF-2026-07-04.md)** | **다른 플랫폼 전달용** — 최신 진행·접속·다음 단계 |
 | **[00-HOME-SERVER-HANDOFF.md](./00-HOME-SERVER-HANDOFF.md)** | 홈서버 전체 |
 | **[BLOG-AUTOMATION-MASTER.md](./BLOG-AUTOMATION-MASTER.md)** | **블로그 자동화 (전략·구축 단일)** |
 | **[guides/blog-sectors/](./guides/blog-sectors/)** | **블로그 섹터별 상세 구축 (01~10)** |

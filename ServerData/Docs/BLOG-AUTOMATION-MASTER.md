@@ -22,8 +22,9 @@
 - API 비용: 일일 상한·캐시·템플릿 (sonnet=주식 본문만)
 - 실패 시 Telegram 에스컬레이션, SEO 롱테일·승인 품질 게이트
 
-상태: 설계·스크립트 골격 완료, 구축 미시작
-다음: setup-blog-wizard → install 스크립트 → OpenClaw 설치
+상태: Phase A ~70% — wizard·install·launchd·쿠키·Telegram 완료 (2026-07-04)
+다음: foxhat 카테고리 ID → blog.env → OpenRouter → tistory-draft → 첫 임시저장
+핸드오프: PLATFORM-HANDOFF-2026-07-04.md
 ```
 
 ---
@@ -267,7 +268,8 @@ VBoxManage modifyvm centos-server --memory 2048
 - [ ] `crawl-stock.sh` · `crawl-fmkorea-deals.sh` · `verify-coupang-price.sh`
 - [ ] `tistory-draft.sh` post.json 본구현
 - [ ] OpenClaw 스킬 등록 (stock-daily / deal-scan)
-- [ ] Tistory 블로그 호스트명 확정
+- [x] Tistory 블로그 호스트명 확정 (foxmong=stock, foxhat=deal)
+- [ ] foxhat 카테고리 ID → blog.env
 - [ ] 크롤러·발행 E2E 검증
 
 ---
@@ -279,7 +281,7 @@ VBoxManage modifyvm centos-server --memory 2048
 | 2026-06-15 | 최초 전략 확정 (Tistory, 승인, 에펨, 8GB, 분석형) |
 | 2026-06-15 | 실패 알림, API 비용 절약, 수동작업 자동화 |
 | 2026-06-15 | 상위 노출·SEO 전략 |
-| 2026-06-15 | **섹터별 상세 가이드** `guides/blog-sectors/` (GitHub) |
+| 2026-07-04 | **플랫폼 핸드오프** `PLATFORM-HANDOFF-2026-07-04.md` — 구축 진행 ~70% 반영 |
 
 ---
 
