@@ -1,0 +1,9 @@
+# Codex 데스크톱 앱이 Worktree(격리 작업공간)를 만들 때,
+# .gitignore 때문에 복사되지 않는 파일들 중 반드시 필요한 것만 여기 나열합니다.
+# (커밋되지 않는 비밀 값이므로 .gitignore 에는 그대로 남아있고, 이 목록만
+#  "새 worktree를 만들 때는 복사해줘"라는 예외로 취급됩니다.)
+#
+# 참고: https://developers.openai.com/codex/app/worktrees
+
+app_dev_org/.env
+agent_dashboard/.env
