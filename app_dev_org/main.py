@@ -50,7 +50,9 @@ def cmd_new(project_name: str, requirements: str) -> None:
     manager.commit_project(worktree, f"feat: {project_name} 초기 산출물 (crewAI 자동 생성)")
 
     print("\n===== 완료 =====")
-    print(f"산출물 위치: {worktree}/docs/")
+    print(f"산출물 위치:        {worktree}/docs/")
+    print(f"메시지 전달 로그:    {worktree}/logs/handoff.md")
+    print("                    (PM→아키텍트→개발자→QA 순서로 무엇이 전달됐는지 기록됨)")
     print(f"최종 결과 요약:\n{result}")
     print("\n조직 브랜치는 전혀 수정되지 않았습니다. (git status 로 확인 가능)")
 

@@ -13,9 +13,18 @@ crewAI 기반 "앱 개발 조직" 정의.
 
 각 단계의 산출물은 다음 단계 에이전트에게 자동으로 전달(context)되며,
 최종 산출물은 격리된 프로젝트 브랜치(worktree) 안에만 저장됩니다.
+
+메시지 전달(handoff) 추적:
+  각 에이전트가 작업을 마칠 때마다 crewAI의 task_callback이 호출된다.
+  이 시점에 "누가(agent) 무엇을(task) 만들어서 다음 사람에게 넘겼는지"를
+  handoff_logger.py 가 <output_dir>/logs/handoff.md 파일에 사람이 읽기 쉬운
+  형태로 기록한다. 실행이 끝난 뒤 이 파일을 열면 PM→아키텍트→개발자→QA로
+  메시지가 전달되는 전체 과정을 순서대로 확인할 수 있다.
 """
 
 from crewai import Agent, Crew, Process, Task
+
+from handoff_logger import make_handoff_logger
 
 
 def build_app_dev_crew(project_name: str, requirements: str, output_dir: str) -> Crew:
@@ -151,4 +160,7 @@ def build_app_dev_crew(project_name: str, requirements: str, output_dir: str) ->
         tasks=[plan_task, design_task, develop_task, review_task],
         process=Process.sequential,
         verbose=True,
+        # 태스크가 끝날 때마다(=다음 에이전트에게 메시지가 넘어갈 때마다) 호출되어
+        # 누가 무엇을 만들어 넘겼는지 output_dir/logs/handoff.md 에 기록한다.
+        task_callback=make_handoff_logger(output_dir),
     )
