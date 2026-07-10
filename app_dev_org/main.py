@@ -12,6 +12,11 @@
   # 프로젝트 작업 폴더 정리 (브랜치는 보존)
   python main.py clean "todo-app"
 
+  # 프로젝트를 조직 저장소와 물리적으로 분리된 새 저장소로 내보내기
+  # (PR/머지를 하더라도 조직 브랜치에는 절대 영향을 줄 수 없게 만들고 싶을 때)
+  python main.py export "todo-app" --new-repo "todo-app"          # gh CLI로 새 저장소 생성 후 push
+  python main.py export "todo-app" --repo-url "<이미 만든 빈 저장소 URL>"
+
 동작 순서 (new 명령):
   1. BranchManager 가 조직 브랜치에서 project/<이름> 브랜치를 분기하고,
      별도 폴더(worktree)에 체크아웃한다. → 조직 브랜치 완전 격리
@@ -74,6 +79,26 @@ def cmd_clean(project_name: str) -> None:
     print(f"'{project_name}' 작업 폴더를 정리했습니다. (브랜치는 보존됨)")
 
 
+def cmd_export(
+    project_name: str,
+    remote_url: str | None,
+    new_repo_name: str | None,
+    public: bool,
+) -> None:
+    manager = BranchManager(str(REPO_ROOT))
+    print(f"'{project_name}' 프로젝트를 조직 저장소와 분리된 새 저장소로 내보내는 중...")
+    target = manager.export_project(
+        project_name,
+        remote_url=remote_url,
+        new_repo_name=new_repo_name,
+        private=not public,
+    )
+    print(f"\n완료: {target}")
+    print("이제 이 프로젝트는 조직 저장소와 물리적으로 다른 저장소에 있습니다.")
+    print("이 프로젝트를 나중에 PR/머지해도 조직 저장소의 브랜치에는 절대 영향을 줄 수 없습니다.")
+    print(f"(조직 저장소 쪽 project/{manager._slugify(project_name)} 브랜치는 백업용으로 남겨둬도 되고, 'python main.py clean' 으로 정리해도 됩니다.)")
+
+
 def main() -> None:
     load_dotenv(Path(__file__).resolve().parent / ".env")
 
@@ -94,6 +119,30 @@ def main() -> None:
             print('사용법: python main.py clean "<프로젝트이름>"')
             sys.exit(1)
         cmd_clean(sys.argv[2])
+    elif command == "export":
+        if len(sys.argv) < 3:
+            print('사용법: python main.py export "<프로젝트이름>" --new-repo "<저장소이름>" [--public]')
+            print('        또는: python main.py export "<프로젝트이름>" --repo-url "<빈 저장소 URL>"')
+            sys.exit(1)
+        project_name = sys.argv[2]
+        remote_url = None
+        new_repo_name = None
+        public = False
+        rest = sys.argv[3:]
+        i = 0
+        while i < len(rest):
+            if rest[i] == "--repo-url" and i + 1 < len(rest):
+                remote_url = rest[i + 1]
+                i += 2
+            elif rest[i] == "--new-repo" and i + 1 < len(rest):
+                new_repo_name = rest[i + 1]
+                i += 2
+            elif rest[i] == "--public":
+                public = True
+                i += 1
+            else:
+                i += 1
+        cmd_export(project_name, remote_url, new_repo_name, public)
     else:
         print(f"알 수 없는 명령: {command}")
         print(__doc__)

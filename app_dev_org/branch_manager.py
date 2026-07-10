@@ -13,10 +13,24 @@
 
 즉, 조직 브랜치는 "읽기 전용 템플릿"처럼 보존되고,
 모든 프로젝트 작업은 자기 브랜치/폴더 안에서만 일어난다.
+
+주의 (중요): 위 격리는 "AI가 작업하는 동안" 자동으로 지켜지는 안전장치일 뿐,
+`project/<이름>` 브랜치를 사람이 의도적으로 PR을 열어 조직 브랜치에 머지하면
+그 시점부터는 당연히 조직 브랜치에 그 파일들이 반영된다 (머지란 원래 그런
+행위이기 때문). 즉 이 시스템은 "실수로/자동으로 섞이는 것"을 막아주는 것이지,
+"의도적인 머지"까지 막아주지는 않는다.
+
+정말로 조직 저장소와 물리적으로 완전히 분리하고 싶다면(=애초에 머지할 대상
+자체가 없게 만들고 싶다면) `export_project()`로 별도의 새 GitHub 저장소로
+내보내면 된다. 그러면 프로젝트는 조직 저장소와 아예 다른 저장소에 있으므로
+실수로 PR을 잘못 열어도 조직 브랜치에는 영향을 줄 수 없다.
 """
 
+import json
 import re
+import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 
 
@@ -73,7 +87,24 @@ class BranchManager:
             str(worktree_path),
             self.base_branch,
         )
+
+        # export_project() 가 "이 프로젝트가 정확히 어느 브랜치에서 분기됐는지"를
+        # 나중에도 알 수 있도록, worktree 밖(.projects/<이름>.meta.json)에 기록해둔다.
+        # (worktree 안에 두면 커밋에 섞이므로 일부러 밖에 둔다.)
+        self._write_meta(slug, {"base_branch": self.base_branch})
         return worktree_path
+
+    def _meta_path(self, slug: str) -> Path:
+        return self.projects_root / f"{slug}.meta.json"
+
+    def _write_meta(self, slug: str, data: dict) -> None:
+        self._meta_path(slug).write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    def _read_meta(self, slug: str) -> dict:
+        path = self._meta_path(slug)
+        if path.exists():
+            return json.loads(path.read_text(encoding="utf-8"))
+        return {}
 
     def commit_project(self, worktree_path: Path, message: str) -> None:
         """프로젝트 브랜치에만 산출물을 커밋한다 (조직 브랜치는 영향 없음)."""
@@ -89,8 +120,102 @@ class BranchManager:
         self._git("worktree", "remove", "--force", str(worktree_path))
         if delete_branch:
             self._git("branch", "-D", f"project/{slug}")
+        self._meta_path(slug).unlink(missing_ok=True)
 
     def list_projects(self) -> list[str]:
         """현재 존재하는 프로젝트 브랜치 목록을 반환한다."""
         out = self._git("branch", "--list", "project/*", "--format=%(refname:short)")
         return [line for line in out.splitlines() if line]
+
+    def export_project(
+        self,
+        project_name: str,
+        remote_url: str | None = None,
+        new_repo_name: str | None = None,
+        private: bool = True,
+    ) -> str:
+        """프로젝트를 조직 저장소와 완전히 물리적으로 분리된 새 저장소로 내보낸다.
+
+        `project/<이름>` 브랜치의 git 이력을 그대로 push하는 게 아니라,
+        **분기 시점(base_branch) 이후 새로 추가/변경된 파일만** 골라
+        완전히 새로운 git 저장소를 만든다 (org에서 물려받은 기존 파일은
+        제외됨). 이렇게 하면:
+          - 조직 브랜치의 파일/이력이 새 저장소에 전혀 섞이지 않는다.
+          - 물리적으로 다른 저장소이므로, 나중에 누가 실수로 PR/머지를
+            시도해도 조직 저장소의 브랜치에는 애초에 반영될 수 없다.
+
+        Args:
+            remote_url: 이미 만들어둔 빈 GitHub 저장소 URL. 지정하면 바로 push.
+            new_repo_name: remote_url이 없을 때, `gh repo create`로 새로
+                만들 저장소 이름 (로컬에 GitHub CLI `gh` 로그인이 필요).
+            private: new_repo_name 사용 시 비공개 저장소로 만들지 여부.
+
+        Returns:
+            push된 원격 저장소의 URL 또는 이름.
+        """
+        if not remote_url and not new_repo_name:
+            raise ValueError("remote_url 또는 new_repo_name 중 하나는 반드시 지정해야 합니다.")
+
+        slug = self._slugify(project_name)
+        worktree_path = self.projects_root / slug
+        if not worktree_path.exists():
+            raise FileNotFoundError(
+                f"프로젝트 폴더가 없습니다: {worktree_path}\n"
+                f"먼저 create_project_workspace()로 프로젝트를 만드세요."
+            )
+
+        meta = self._read_meta(slug)
+        fork_base_branch = meta.get("base_branch", self.base_branch)
+
+        # 분기 시점(base_branch) 대비 새로 생기거나 바뀐 파일만 골라낸다.
+        # (--diff-filter=ACMR: 추가/복사/수정/이름변경만, 삭제된 파일은 제외)
+        # -z: 한글 등 non-ASCII 파일명이 8진수로 escape되지 않도록 NUL 구분 사용.
+        diff_output = self._git(
+            "diff", "-z", "--name-only", "--diff-filter=ACMR",
+            f"{fork_base_branch}...project/{slug}",
+        )
+        changed_files = [line for line in diff_output.split("\x00") if line]
+
+        if not changed_files:
+            raise ValueError(
+                f"'{project_name}' 프로젝트에 새로 추가/변경된 파일이 없습니다. "
+                f"(조직 브랜치 '{fork_base_branch}' 대비 diff 없음)"
+            )
+
+        export_dir = Path(tempfile.mkdtemp(prefix=f"export-{slug}-"))
+        try:
+            for rel_path in changed_files:
+                src = worktree_path / rel_path
+                if not src.exists():
+                    continue  # 방어적 처리: 혹시 워크트리에서 이미 지워진 경우
+                dest = export_dir / rel_path
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src, dest)
+
+            self._git("init", "-q", "-b", "main", cwd=export_dir)
+            self._git("add", "-A", cwd=export_dir)
+            self._git(
+                "commit", "-q", "-m",
+                f"feat: {project_name} 초기 버전 (조직 저장소에서 분리하여 내보냄)",
+                cwd=export_dir,
+            )
+
+            if remote_url:
+                self._git("remote", "add", "origin", remote_url, cwd=export_dir)
+                self._git("push", "-u", "origin", "main", cwd=export_dir)
+                return remote_url
+
+            subprocess.run(
+                [
+                    "gh", "repo", "create", new_repo_name,
+                    "--private" if private else "--public",
+                    "--source", str(export_dir),
+                    "--remote", "origin",
+                    "--push",
+                ],
+                check=True,
+                cwd=export_dir,
+            )
+            return new_repo_name
+        finally:
+            shutil.rmtree(export_dir, ignore_errors=True)
