@@ -23,8 +23,9 @@ from pathlib import Path
 class BranchManager:
     def __init__(self, repo_root: str, base_branch: str | None = None):
         self.repo_root = Path(repo_root).resolve()
-        # worktree 는 저장소 밖(형제 디렉터리)에 두어 조직 브랜치 폴더를 오염시키지 않는다.
-        self.projects_root = self.repo_root.parent / f"{self.repo_root.name}-projects"
+        # worktree 는 .gitignore 처리된 전용 폴더에 두어
+        # 조직 브랜치의 추적 파일을 오염시키지 않는다.
+        self.projects_root = self.repo_root / ".projects"
         self.base_branch = base_branch or self._current_branch()
 
     def _git(self, *args: str, cwd: Path | None = None) -> str:
@@ -50,7 +51,7 @@ class BranchManager:
         """격리된 프로젝트 브랜치 + 작업 폴더(worktree)를 만들어 경로를 반환한다.
 
         - 브랜치: project/<이름>  (조직 브랜치에서 분기, 이후 완전 독립)
-        - 폴더:   <저장소>-projects/<이름>/  (조직 브랜치 폴더와 물리적으로 분리)
+        - 폴더:   .projects/<이름>/  (gitignore 처리되어 조직 브랜치와 분리)
         """
         slug = self._slugify(project_name)
         branch = f"project/{slug}"
