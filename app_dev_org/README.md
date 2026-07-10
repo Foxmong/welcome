@@ -181,9 +181,23 @@ cd app_dev_org
 # 진행 중인 프로젝트 브랜치 목록
 ../.venv/bin/python main.py list
 
+# 프로젝트별 브랜치/작업폴더/베이스/최근 커밋 한눈에 보기
+../.venv/bin/python main.py status
+
 # 프로젝트 작업 폴더 정리 (브랜치는 보존)
 ../.venv/bin/python main.py clean "todo-app"
 ```
+
+### 안전장치 (자동으로 걸러주는 실수들)
+
+| 실수 | 동작 |
+|------|------|
+| LLM API 키 없이 `new` 실행 | 브랜치를 만들기 전에 멈추고 설정 방법 안내 |
+| 프로젝트 브랜치(A앱) 위에서 또 `new` 실행 (B앱에 A 파일이 섞임) | 차단하고 조직 브랜치로 이동하라고 안내 |
+| 같은 이름으로 다시 `new` 실행 | 차단하고 이어하기/새로시작 방법 안내 |
+
+`.env` 에 `ORG_BASE_BRANCH=main` 을 설정해두면 **어느 브랜치에서 명령을
+실행하든 항상 main(조직 브랜치)에서 분기**되므로 가장 안전합니다.
 
 실행이 끝난 뒤 조직 브랜치에서 `git status`를 치면
 `nothing to commit, working tree clean` — 즉 아무것도 안 바뀐 것을

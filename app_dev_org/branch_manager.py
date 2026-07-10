@@ -27,6 +27,7 @@
 """
 
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -40,7 +41,15 @@ class BranchManager:
         # worktree 는 .gitignore 처리된 전용 폴더에 두어
         # 조직 브랜치의 추적 파일을 오염시키지 않는다.
         self.projects_root = self.repo_root / ".projects"
-        self.base_branch = base_branch or self._current_branch()
+        # 베이스 브랜치 우선순위:
+        #   1) 명시적 인자  2) ORG_BASE_BRANCH 환경변수(.env)  3) 현재 브랜치
+        # 조직이 main 에 자리잡은 뒤에는 .env 에 ORG_BASE_BRANCH=main 을 넣어두면
+        # 어느 브랜치에서 실행하든 항상 main 에서 분기되어 안전하다.
+        self.base_branch = (
+            base_branch
+            or os.environ.get("ORG_BASE_BRANCH")
+            or self._current_branch()
+        )
 
     def _git(self, *args: str, cwd: Path | None = None) -> str:
         result = subprocess.run(
@@ -71,10 +80,28 @@ class BranchManager:
         branch = f"project/{slug}"
         worktree_path = self.projects_root / slug
 
+        # 안전 가드 1: 프로젝트 브랜치 위에서 또 프로젝트를 분기하는 실수 방지.
+        # (A앱 브랜치에서 B앱을 만들면 B에 A의 파일이 섞여 들어간다)
+        if self.base_branch.startswith("project/"):
+            raise RuntimeError(
+                f"현재 베이스가 프로젝트 브랜치({self.base_branch})입니다.\n"
+                f"새 프로젝트는 반드시 조직 브랜치(main)에서 분기해야 합니다.\n"
+                f"해결: 조직 브랜치로 이동(git checkout main)하거나, "
+                f".env 에 ORG_BASE_BRANCH=main 을 설정하세요."
+            )
+
+        # 안전 가드 2: 같은 이름의 브랜치/폴더가 이미 있으면 친절하게 안내.
         if worktree_path.exists():
             raise FileExistsError(
                 f"프로젝트 폴더가 이미 존재합니다: {worktree_path}\n"
-                f"다른 이름을 쓰거나 remove_project_workspace()로 정리하세요."
+                f"다른 이름을 쓰거나, 'python main.py clean \"{project_name}\"' 으로 정리하세요."
+            )
+        existing = self._git("branch", "--list", branch)
+        if existing:
+            raise FileExistsError(
+                f"'{branch}' 브랜치가 이미 존재합니다 (이전에 만든 프로젝트).\n"
+                f"이어서 작업하려면: git worktree add .projects/{slug} {branch}\n"
+                f"완전히 새로 시작하려면: git branch -D {branch} 후 다시 실행하세요."
             )
 
         self.projects_root.mkdir(parents=True, exist_ok=True)
@@ -126,6 +153,22 @@ class BranchManager:
         """현재 존재하는 프로젝트 브랜치 목록을 반환한다."""
         out = self._git("branch", "--list", "project/*", "--format=%(refname:short)")
         return [line for line in out.splitlines() if line]
+
+    def status_report(self) -> list[dict]:
+        """프로젝트별 브랜치/작업폴더/베이스/최근 커밋을 한눈에 보여줄 자료를 만든다."""
+        report = []
+        for branch in self.list_projects():
+            slug = branch.removeprefix("project/")
+            worktree_path = self.projects_root / slug
+            meta = self._read_meta(slug)
+            last_commit = self._git("log", "-1", "--format=%h %s (%cr)", branch)
+            report.append({
+                "branch": branch,
+                "worktree": str(worktree_path) if worktree_path.exists() else None,
+                "base_branch": meta.get("base_branch", "(기록 없음)"),
+                "last_commit": last_commit,
+            })
+        return report
 
     def export_project(
         self,

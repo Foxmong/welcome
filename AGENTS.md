@@ -28,8 +28,14 @@
    cd app_dev_org
    pip install -r requirements.txt   # 최초 1회
    cp .env.example .env              # 최초 1회, LLM API 키(OPENAI_API_KEY 등) 입력
+                                     # .env 의 ORG_BASE_BRANCH=main 설정 유지 권장
    python main.py new "<프로젝트 이름>" "<사용자 요구사항 원문>"
    ```
+
+   CLI에는 안전장치가 내장되어 있습니다: API 키가 없거나, 프로젝트 브랜치
+   위에서 또 분기하려 하거나, 같은 이름의 프로젝트가 이미 있으면 브랜치를
+   만들기 전에 멈추고 해결 방법을 안내합니다. 현황 확인은
+   `python main.py status` 를 사용하세요.
 
    이 명령이 자동으로 다음을 수행합니다.
    - 현재(조직) 브랜치에서 `project/<프로젝트 이름>` 브랜치를 분기

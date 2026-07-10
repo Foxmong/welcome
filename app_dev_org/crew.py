@@ -142,13 +142,13 @@ def build_app_dev_crew(project_name: str, requirements: str, output_dir: str) ->
 
     review_task = Task(
         description=(
-            "개발자가 작성한 코드를 기능 명세서와 대조하여 리뷰하라. "
-            "구현 누락, 잠재 버그, 개선 제안을 심각도(높음/중간/낮음)와 "
-            "함께 정리할 것."
+            "개발자가 작성한 코드를 기능 명세서·기술 설계서와 대조하여 리뷰하라. "
+            "구현 누락, 설계와 다르게 구현된 부분, 잠재 버그, 개선 제안을 "
+            "심각도(높음/중간/낮음)와 함께 정리할 것."
         ),
         expected_output="마크다운 형식의 코드 리뷰 보고서 (한국어)",
         agent=qa_reviewer,
-        context=[plan_task, develop_task],
+        context=[plan_task, design_task, develop_task],
         output_file=f"{output_dir}/docs/04_리뷰보고서.md",
     )
 

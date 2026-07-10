@@ -9,6 +9,9 @@
   # 진행 중인 프로젝트 브랜치 목록 확인
   python main.py list
 
+  # 프로젝트별 브랜치/작업폴더/베이스/최근 커밋 한눈에 보기
+  python main.py status
+
   # 프로젝트 작업 폴더 정리 (브랜치는 보존)
   python main.py clean "todo-app"
 
@@ -25,18 +28,33 @@
   3. 산출물을 프로젝트 브랜치에 커밋한다. 조직 브랜치는 변경 0건.
 """
 
+import os
 import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
 
 from branch_manager import BranchManager
-from crew import build_app_dev_crew
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
+def _check_llm_key() -> None:
+    """LLM API 키가 없으면 crewAI 실행 도중 긴 traceback 이 터진다.
+    브랜치를 만들기 전에 먼저 확인해서 친절하게 안내한다."""
+    known_keys = ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GEMINI_API_KEY", "GOOGLE_API_KEY"]
+    if not any(os.environ.get(k) for k in known_keys):
+        print("LLM API 키가 설정되어 있지 않습니다.")
+        print("app_dev_org/.env.example 을 .env 로 복사한 뒤 키를 입력하세요:")
+        print("  cp .env.example .env")
+        print("  (예: OPENAI_API_KEY=sk-... 또는 MODEL + ANTHROPIC_API_KEY)")
+        sys.exit(1)
+
+
 def cmd_new(project_name: str, requirements: str) -> None:
+    _check_llm_key()
+    from crew import build_app_dev_crew  # crewai 임포트가 느려서 키 확인 후에 로드
+
     manager = BranchManager(str(REPO_ROOT))
     print(f"[1/3] 격리된 프로젝트 브랜치 생성 중... (베이스: {manager.base_branch})")
     worktree = manager.create_project_workspace(project_name)
@@ -71,6 +89,21 @@ def cmd_list() -> None:
         print("프로젝트 브랜치 목록:")
         for p in projects:
             print(f"  - {p}")
+
+
+def cmd_status() -> None:
+    manager = BranchManager(str(REPO_ROOT))
+    report = manager.status_report()
+    if not report:
+        print("진행 중인 프로젝트가 없습니다.")
+        return
+    print(f"프로젝트 현황 ({len(report)}개):\n")
+    for item in report:
+        print(f"  {item['branch']}")
+        print(f"    베이스 브랜치: {item['base_branch']}")
+        print(f"    작업 폴더:     {item['worktree'] or '(정리됨 - 브랜치만 남음)'}")
+        print(f"    최근 커밋:     {item['last_commit']}")
+        print()
 
 
 def cmd_clean(project_name: str) -> None:
@@ -111,9 +144,15 @@ def main() -> None:
         if len(sys.argv) < 4:
             print('사용법: python main.py new "<프로젝트이름>" "<요구사항>"')
             sys.exit(1)
-        cmd_new(sys.argv[2], sys.argv[3])
+        try:
+            cmd_new(sys.argv[2], sys.argv[3])
+        except (RuntimeError, FileExistsError) as exc:
+            print(f"\n[중단] {exc}")
+            sys.exit(1)
     elif command == "list":
         cmd_list()
+    elif command == "status":
+        cmd_status()
     elif command == "clean":
         if len(sys.argv) < 3:
             print('사용법: python main.py clean "<프로젝트이름>"')
