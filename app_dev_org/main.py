@@ -3,8 +3,16 @@
 앱 개발 조직 실행 진입점 (CLI).
 
 사용법:
-  # 새 프로젝트 명령 (격리 브랜치 자동 생성 → 조직 실행 → 결과 커밋)
+  # [A 모드] 새 프로젝트 명령 (격리 브랜치 생성 → crewAI 조직 실행 → 결과 커밋)
+  #          LLM API 키 필요
   python main.py new "todo-app" "간단한 할 일 관리 웹앱을 만들어줘. 추가/완료/삭제 기능 필요."
+
+  # [B 모드] 격리 작업공간 + 산출물 템플릿만 생성 (API 키 불필요)
+  #          이후 에이전트(Codex/Cursor)가 직접 4역할을 수행하며 템플릿을 채움
+  python main.py prepare "todo-app" "간단한 할 일 관리 웹앱. 추가/완료/삭제 기능 필요."
+
+  # [B 모드] 작업 완료 후 산출물을 프로젝트 브랜치에 커밋 (API 키 불필요)
+  python main.py finish "todo-app"
 
   # 진행 중인 프로젝트 브랜치 목록 확인
   python main.py list
@@ -80,6 +88,49 @@ def cmd_new(project_name: str, requirements: str) -> None:
     print("\n조직 브랜치는 전혀 수정되지 않았습니다. (git status 로 확인 가능)")
 
 
+def cmd_prepare(project_name: str, requirements: str) -> None:
+    """B 모드 1단계: API 키 없이 격리 작업공간과 산출물 템플릿을 만든다.
+
+    안전 가드(new 와 동일)를 재사용하므로, 수동 git worktree 명령보다 안전하다.
+    """
+    from scaffold import scaffold_project
+
+    manager = BranchManager(str(REPO_ROOT))
+    print(f"[1/2] 격리된 프로젝트 브랜치 생성 중... (베이스: {manager.base_branch})")
+    worktree = manager.create_project_workspace(project_name)
+    print(f"      브랜치: project/{manager._slugify(project_name)}")
+    print(f"      폴더:   {worktree}")
+
+    print("[2/2] B 모드 산출물 템플릿 생성 중...")
+    created = scaffold_project(worktree, project_name, requirements)
+    manager.commit_project(worktree, f"chore: {project_name} 프로젝트 골격 생성 (B 모드)")
+
+    print("\n===== 준비 완료 =====")
+    print(f"작업 폴더: {worktree}")
+    print("생성된 템플릿:")
+    for path in created:
+        print(f"  - {path}")
+    print("\n다음 순서 (에이전트가 수행):")
+    print(f"  1. {worktree}/PROJECT_BRIEF.md 의 요구사항과 체크리스트 확인")
+    print("  2. PM → 아키텍트 → 개발자 → QA 순서로 docs/ 템플릿을 채우고 코드 작성")
+    print("  3. 각 단계 완료 시 logs/handoff.md 에 기록")
+    print(f'  4. 완료 후: python main.py finish "{project_name}"')
+
+
+def cmd_finish(project_name: str) -> None:
+    """B 모드 마무리: 산출물을 프로젝트 브랜치에 커밋한다 (API 키 불필요)."""
+    manager = BranchManager(str(REPO_ROOT))
+    slug = manager._slugify(project_name)
+    worktree = manager.projects_root / slug
+    if not worktree.exists():
+        print(f"[중단] 작업 폴더가 없습니다: {worktree}")
+        print('먼저 python main.py prepare "<프로젝트이름>" "<요구사항>" 을 실행하세요.')
+        sys.exit(1)
+    manager.commit_project(worktree, f"feat: {project_name} 산출물 (B 모드, 에이전트 단독 수행)")
+    print(f"커밋 완료: project/{slug} 브랜치")
+    print("조직 브랜치는 전혀 수정되지 않았습니다. (git status 로 확인 가능)")
+
+
 def cmd_list() -> None:
     manager = BranchManager(str(REPO_ROOT))
     projects = manager.list_projects()
@@ -149,6 +200,20 @@ def main() -> None:
         except (RuntimeError, FileExistsError) as exc:
             print(f"\n[중단] {exc}")
             sys.exit(1)
+    elif command == "prepare":
+        if len(sys.argv) < 4:
+            print('사용법: python main.py prepare "<프로젝트이름>" "<요구사항>"')
+            sys.exit(1)
+        try:
+            cmd_prepare(sys.argv[2], sys.argv[3])
+        except (RuntimeError, FileExistsError) as exc:
+            print(f"\n[중단] {exc}")
+            sys.exit(1)
+    elif command == "finish":
+        if len(sys.argv) < 3:
+            print('사용법: python main.py finish "<프로젝트이름>"')
+            sys.exit(1)
+        cmd_finish(sys.argv[2])
     elif command == "list":
         cmd_list()
     elif command == "status":

@@ -162,13 +162,24 @@ welcome/                       ← 조직 브랜치 (읽기 전용처럼 보존�
 
 이 조직은 두 가지 방식으로 운영할 수 있습니다.
 
-| | A. crewAI 자동 모드 | B. 에이전트 단독 조직 모드 |
+| | A. crewAI 자동 모드 | B. 에이전트 단독 조직 모드 (기본 권장) |
 |---|---|---|
-| 실행 방법 | `python main.py new "<이름>" "<요구사항>"` | Codex/Cursor 등에게 "○○ 앱 만들어줘"라고 명령 |
+| 실행 방법 | `python main.py new "<이름>" "<요구사항>"` | `python main.py prepare "<이름>" "<요구사항>"` → 에이전트가 템플릿 채움 → `python main.py finish "<이름>"` |
 | 역할 수행 주체 | crewAI가 띄우는 4개의 AI 에이전트 | 지금 대화 중인 에이전트가 4역할을 직접 순서대로 수행 |
 | 필요한 비용 | **LLM API 키 (종량제, 구독과 별개)** | 도구 구독만으로 충분 (예: Codex Pro, Cursor 구독) |
-| 브랜치 격리 | 자동 | 동일하게 적용 (`AGENTS.md` 규칙) |
-| 산출물 | `docs/01~04` + `logs/handoff.md` | 동일 형식 |
+| 브랜치 격리 + 안전 가드 | 자동 | `prepare`가 동일한 가드로 자동 처리 |
+| 산출물 | `docs/01~04` + `logs/handoff.md` | 동일 형식 (`prepare`가 템플릿을 미리 생성) |
+
+B 모드 작업 순서:
+
+1. `python main.py prepare "todo-app" "요구사항..."` — 격리 브랜치·폴더와
+   함께 `PROJECT_BRIEF.md`(요구사항+체크리스트), `docs/01~04` 템플릿,
+   `logs/handoff.md`가 자동으로 만들어집니다.
+2. 에이전트(Codex/Cursor)가 템플릿 상단의 역할별 지시에 따라
+   PM → 아키텍트 → 개발자 → QA 순서로 문서를 채우고 코드를 작성합니다.
+   단계마다 `logs/handoff.md`에 기록을 남깁니다.
+3. `python main.py finish "todo-app"` — 산출물이 프로젝트 브랜치에만
+   커밋됩니다.
 
 **중요**: ChatGPT/Codex Pro 같은 **구독**과 OpenAI **API 키(종량제)**는
 별개 결제입니다. 구독에는 API 크레딧이 포함되지 않으므로, A 모드를 쓰려면
