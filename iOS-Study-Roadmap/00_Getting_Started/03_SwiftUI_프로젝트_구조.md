@@ -1,0 +1,137 @@
+# SwiftUI 프로젝트 구조
+
+> 예상 학습 시간: 60분  
+> 이론: 20분  
+> 코드 실습: 25분  
+> 문제 풀이: 10분  
+> 면접 답변 연습: 5분
+
+## 1. 이번 장의 목표
+
+* SwiftUI 프로젝트는 App 진입점, View, Asset, Preview, 테스트로 나뉜다를 Swift 코드로 설명한다.
+* 문법이 실제 SwiftUI 화면 상태와 어떻게 연결되는지 이해한다.
+* 잘못된 코드와 개선된 코드를 비교해 실무 습관을 만든다.
+
+## 2. 핵심 개념
+
+SwiftUI 프로젝트는 App 진입점, View, Asset, Preview, 테스트로 나뉜다는 앱에서 데이터를 표현하고 화면 동작을 결정하는 기본 도구다. 초보 단계에서는 “값을 만들고, 조건에 따라 바꾸고, 화면에 보여준다”는 흐름으로 이해하면 된다. 실무에서는 같은 문법도 사용자 입력, 서버 응답, 로딩 상태, 빈 화면 처리와 연결된다.
+
+## 3. 기본 문법
+
+```swift
+struct User { let name: String }
+```
+
+## 4. 일반 Swift 예제
+
+```swift
+import Foundation
+
+struct Todo { let title: String; var isDone: Bool }
+let todo = Todo(title: "구조 이해", isDone: false)
+print(todo.title)
+```
+
+## 5. SwiftUI 앱 적용 예제
+
+```swift
+import SwiftUI
+
+@main
+struct StudyApp: App {
+    var body: some Scene { WindowGroup { ContentView() } }
+}
+struct ContentView: View { var body: some View { Text("Hello SwiftUI") } }
+```
+
+## 6. 코드 실행 흐름
+
+1. `View`가 처음 그려질 때 저장된 값이 화면 텍스트로 변환된다.
+2. 사용자가 버튼을 누르거나 입력하면 상태 값이 변경된다.
+3. SwiftUI는 변경된 상태를 감지하고 `body`를 다시 계산한다.
+4. 새 값은 Text, List, Button 같은 하위 View로 전달된다.
+
+## 7. 코드 한 줄씩 해설
+
+* `import SwiftUI`: SwiftUI 화면을 만들기 위해 필요하다.
+* `struct ...: View`: 화면 하나를 값 타입으로 정의한다.
+* `var body: some View`: 화면의 모양을 선언한다.
+* `@State`: 현재 화면이 직접 소유하고 변경하는 작은 상태다.
+* `Button`: 사용자의 행동을 코드와 연결한다.
+
+## 8. 잘못된 코드
+
+```swift
+// 모든 코드를 ContentView 하나에 작성함
+```
+
+## 9. 개선된 코드
+
+```swift
+// Model, View, ViewModel 역할별로 파일을 분리함
+```
+
+## 10. 자주 발생하는 오류
+
+* `Cannot assign to value`: `let` 또는 변경 불가능한 값에 대입했을 때 발생한다. 변경이 필요하면 `var` 또는 `@State`를 사용한다.
+* `Value of optional type must be unwrapped`: 값이 없을 가능성을 처리하지 않았을 때 발생한다. `if let`, `guard let`, 기본값을 사용한다.
+* `Cannot convert value of type`: 타입이 맞지 않을 때 발생한다. 앱 모델의 타입을 먼저 확인한다.
+
+## 11. 실무 사용 사례
+
+* 사용자 프로필, 할 일 목록, 검색어, 필터 상태를 표현한다.
+* API 응답을 화면 모델로 바꿀 때 안전한 타입과 조건 처리를 사용한다.
+* ViewModel로 이동하기 전 SwiftUI 화면 안에서 작은 기능을 검증한다.
+
+## 12. 핵심 요약
+
+1. 문법은 앱의 데이터 흐름을 표현하기 위한 도구다.
+2. SwiftUI는 상태가 바뀌면 화면을 다시 계산한다.
+3. 초보 단계에서는 작은 예제를 직접 타이핑하는 것이 중요하다.
+4. 강제 언래핑과 무분별한 전역 상태는 피한다.
+5. 실무 코드는 읽기 쉬운 이름과 명확한 타입을 선호한다.
+
+## 13. 면접 질문
+
+### 질문 1
+
+SwiftUI 앱의 시작점은 어디인가요?
+
+### 모범 답변
+
+“앱 코드에서는 이 문법을 단순 계산보다 화면 상태와 데이터 모델을 안전하게 표현하기 위해 사용합니다. 예를 들어 사용자 입력이 바뀌면 상태가 변경되고 SwiftUI가 화면을 다시 그립니다. 실무에서는 타입 안정성, Optional 처리, 테스트 가능성을 함께 고려합니다.”
+
+### 꼬리 질문
+
+* SwiftUI에서 이 문법이 자주 등장하는 위치는 어디인가요?
+* 잘못 사용하면 어떤 버그가 생길 수 있나요?
+
+## 14. 직접 실습
+
+### 기본 문제
+
+App, ContentView, Asset의 역할을 설명하라.
+
+### 응용 문제
+
+위 예제를 SwiftUI 화면으로 옮기고 버튼을 눌렀을 때 UI가 변경되게 만들어라.
+
+### 실무 문제
+
+Todo 앱에서 이 개념이 필요한 위치를 2곳 찾고 파일 이름을 설계해 보라.
+
+## 15. 정답 및 해설
+
+<details>
+<summary>정답 보기</summary>
+
+정답은 하나가 아니다. 타입을 명확히 쓰고, Optional을 안전하게 처리하며, UI 상태가 한 방향으로 흐르면 좋은 답안이다.
+
+</details>
+
+## 16. 완료 체크
+
+* [ ] 개념을 말로 설명할 수 있다.
+* [ ] 예제 코드를 보지 않고 작성할 수 있다.
+* [ ] SwiftUI 화면에 적용할 수 있다.
+* [ ] 관련 면접 질문에 답할 수 있다.
