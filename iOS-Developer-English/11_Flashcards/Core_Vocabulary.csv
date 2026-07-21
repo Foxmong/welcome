@@ -1,0 +1,101 @@
+english,korean,category,example,review_level
+add,add의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,addUserData(),1
+append,append의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,appendUserData(),1
+apply,apply의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,applyUserData(),1
+assign,assign의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,assignUserData(),1
+bind,bind의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,bindUserData(),1
+build,build의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,buildUserData(),1
+cache,cache의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,cacheUserData(),1
+cancel,cancel의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,cancelUserData(),1
+capture,capture의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,captureUserData(),1
+cast,cast의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,castUserData(),1
+commit,commit의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,commitUserData(),1
+compare,compare의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,compareUserData(),1
+compile,compile의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,compileUserData(),1
+configure,configure의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,configureUserData(),1
+connect,connect의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,connectUserData(),1
+convert,convert의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,convertUserData(),1
+create,create의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,createUserData(),1
+decode,decode의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,decodeUserData(),1
+delete,delete의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,deleteUserData(),1
+dismiss,dismiss의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,dismissUserData(),1
+display,display의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,displayUserData(),1
+encode,encode의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,encodeUserData(),1
+execute,execute의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,executeUserData(),1
+fetch,fetch의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,fetchUserData(),1
+filter,filter의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,filterUserData(),1
+generate,generate의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,generateUserData(),1
+handle,handle의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,handleUserData(),1
+initialize,initialize의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,initializeUserData(),1
+inject,inject의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,injectUserData(),1
+invalidate,invalidate의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,invalidateUserData(),1
+load,load의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,loadUserData(),1
+map,map의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,mapUserData(),1
+merge,merge의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,mergeUserData(),1
+observe,observe의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,observeUserData(),1
+override,override의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,overrideUserData(),1
+parse,parse의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,parseUserData(),1
+perform,perform의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,performUserData(),1
+persist,persist의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,persistUserData(),1
+present,present의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,presentUserData(),1
+prevent,prevent의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,preventUserData(),1
+process,process의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,processUserData(),1
+publish,publish의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,publishUserData(),1
+receive,receive의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,receiveUserData(),1
+reduce,reduce의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,reduceUserData(),1
+refresh,refresh의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,refreshUserData(),1
+remove,remove의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,removeUserData(),1
+render,render의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,renderUserData(),1
+replace,replace의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,replaceUserData(),1
+request,request의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,requestUserData(),1
+resolve,resolve의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,resolveUserData(),1
+respond,respond의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,respondUserData(),1
+retrieve,retrieve의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,retrieveUserData(),1
+return,return의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,returnUserData(),1
+save,save의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,saveUserData(),1
+schedule,schedule의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,scheduleUserData(),1
+serialize,serialize의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,serializeUserData(),1
+store,store의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,storeUserData(),1
+subscribe,subscribe의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,subscribeUserData(),1
+throw,throw의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,throwUserData(),1
+transform,transform의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,transformUserData(),1
+trigger,trigger의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,triggerUserData(),1
+unwrap,unwrap의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,unwrapUserData(),1
+update,update의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,updateUserData(),1
+validate,validate의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,validateUserData(),1
+argument,argument의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let argument = value,1
+parameter,parameter의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let parameter = value,1
+property,property의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let property = value,1
+instance,instance의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let instance = value,1
+reference,reference의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let reference = value,1
+value,value의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let value = value,1
+state,state의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let state = value,1
+binding,binding의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let binding = value,1
+dependency,dependency의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let dependency = value,1
+constraint,constraint의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let constraint = value,1
+configuration,configuration의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let configuration = value,1
+environment,environment의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let environment = value,1
+scope,scope의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let scope = value,1
+lifecycle,lifecycle의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let lifecycle = value,1
+thread,thread의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let thread = value,1
+task,task의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let task = value,1
+actor,actor의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let actor = value,1
+queue,queue의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let queue = value,1
+request,request의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,verb,requestUserData(),1
+response,response의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let response = value,1
+payload,payload의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let payload = value,1
+endpoint,endpoint의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let endpoint = value,1
+header,header의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let header = value,1
+body,body의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let body = value,1
+token,token의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let token = value,1
+credential,credential의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let credential = value,1
+permission,permission의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let permission = value,1
+access,access의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let access = value,1
+storage,storage의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let storage = value,1
+repository,repository의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let repository = value,1
+service,service의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let service = value,1
+component,component의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let component = value,1
+modifier,modifier의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let modifier = value,1
+preview,preview의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let preview = value,1
+destination,destination의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let destination = value,1
+selection,selection의 개발 문맥 의미를 Swift/iOS 상황에서 이해한다,noun,let selection = value,1
